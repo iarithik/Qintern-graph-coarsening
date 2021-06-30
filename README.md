@@ -1,8 +1,5 @@
-# Sample GitLab Project
+**Project: Solving Vehicle Routing Problem and its variants using quantum computing**
 
-This sample project shows how a project in GitLab looks for demonstration purposes. It contains issues, merge requests and Markdown files in many branches,
-named and filled with lorem ipsum.
+**Mentor:** Paweł Gora
 
-You can look around to get an idea how to structure your project and, when done, you can safely delete this project.
-
-[Learn more about creating GitLab projects.](https://docs.gitlab.com/ee/gitlab-basics/create-project.html)
+**Description:** Vehicle Routing Problem (VRP) is a combinatorial optimization problem important for real-world logistics and difficult (NP-hard) from a computational perspective. The goal is to find optimal routes of a fleet of vehicles aiming to visit some number of locations. There are different variants of VRP, e.g., with limited capacities of vehicles, time windows for visiting specific locations, multiple depots etc. All of them are interesting areas for applications of quantum computers.
