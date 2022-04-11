@@ -109,6 +109,7 @@ class ClassicalOptimizer:
             df = pd.DataFrame(temp, columns = ["Value", "Name", "position"])
             df = df.sort_values(by="position")
             x = df.Value.values
+            solution_name = df.Name.values
             return(x, obj, solution_name)
                 
         else:
@@ -142,6 +143,7 @@ class ClassicalOptimizer:
             df = pd.DataFrame(temp, columns = ["Value", "Name", "position"])
             df = df.sort_values(by="position")
             x = df.Value.values
+            solution_name = df.Name.values
             return(x, obj, solution_name)
         
         else:
