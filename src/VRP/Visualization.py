@@ -35,7 +35,7 @@ def visualize_route(graph, routes, colormap='hsv'):
                 xc[_to] - xc[_from],
                 yc[_to] - yc[_from],
                 length_includes_head=True,
-                head_width=0.05,
+                head_width=0.02,
                 color = color
             )
 

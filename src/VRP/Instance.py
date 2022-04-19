@@ -9,12 +9,17 @@ from typing import Tuple, List
 class Initializer:
     """Generate the coordenates of 'n' instances (nodes)"""
     
-    def __init__(self, n, fully_connected=True):
+    def __init__(self, n, seed = 1543, fully_connected=True):
         self.n = n
+        self.seed = seed
         self.fully_connected = fully_connected
+    
+    def set_seed(self, seed=None):
+        np.random.seed(seed if seed else self.seed )
     
     def generate_graph(self) -> graphs.Graph:
         xc, yc, instance = self.generate_instance()
+
         # Define a Graph
         graph = graphs.Graph(instance)
 
