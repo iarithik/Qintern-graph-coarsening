@@ -1,3 +1,5 @@
+import numpy as np
+
 def edge_list2dict(edge_list):
     n1, n2, w = edge_list
     assert len(n1) == len(n2) == len(w)
@@ -49,3 +51,28 @@ def get_coarsen_distance_norm(coarsened_adjacency, mapping, parent_edl):
             distance = get_distance(n_x, n_y, parent_edl)
             adjacency[ix, iy] = distance
     return adjacency
+
+def reframe_coordinates(coarsened_adjacency, original_graph, mapping):
+    adjacency = coarsened_adjacency.copy()
+    
+    parent_edl = edge_list2dict(original_graph.get_edge_list())
+    old_coords = np.asarray(original_graph.coords)
+    new_coords = []
+
+    mapping = np.asarray(mapping.todense())
+    shape = mapping.shape
+
+    # cn represents node on the coarsened graph
+    for cn in range(shape[0]):
+        coarsened_nodes = np.where(mapping[cn] > 0.)
+        new_coords += [ get_midpoint_from_coarsened( old_coords, coarsened_nodes, mapping[cn]) ]
+
+    return np.array(new_coords)
+
+def get_midpoint_from_coarsened(old_coords, coarsened_nodes, coarsened_weights):
+    total_coarsened_units = len(coarsened_nodes)
+
+    x = np.array([ old_coords[node, 0] for node in coarsened_nodes]).flatten().sum() / total_coarsened_units
+    y = np.array([ old_coords[node, 1] for node in coarsened_nodes]).flatten().sum() / total_coarsened_units
+
+    return np.array([x, y]).reshape(2, )
