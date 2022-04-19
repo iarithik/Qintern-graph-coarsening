@@ -1,4 +1,4 @@
-**Project: Solving Vehicle Routing Problem and its variants using quantum computing (Group 2 - QAOA) **
+# Project: Solving Vehicle Routing Problem and its variants using quantum computing (Group 2 - QAOA)
 
 **Mentor:** Paweł Gora
 
