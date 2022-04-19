@@ -5,11 +5,13 @@ from VRP.ClassicalSolvers import ClassicalOptimizer
 
 import numpy as np
 
-NODES = 15
+NODES = 20
 
 def main():
     # Initialize a graph
     initializer = Initializer(NODES)
+    initializer.set_seed()
+
     graph = initializer.generate_graph()
 
     # Initiate a route instance with vehicles
