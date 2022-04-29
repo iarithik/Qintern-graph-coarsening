@@ -70,9 +70,16 @@ def reframe_coordinates(coarsened_adjacency, original_graph, mapping):
     return np.array(new_coords)
 
 def get_midpoint_from_coarsened(old_coords, coarsened_nodes, coarsened_weights):
-    total_coarsened_units = len(coarsened_nodes)
+    # old_coords => (20, 2) Matrix
+    # coarsened_nodes[0] => [ 0, 1 ]
+    # coarsened_weights => 
+    # [0.707, 0.707, 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   , 0.   ]
+    total_coarsened_units = len(coarsened_nodes[0])
 
-    x = np.array([ old_coords[node, 0] for node in coarsened_nodes]).flatten().sum() / total_coarsened_units
-    y = np.array([ old_coords[node, 1] for node in coarsened_nodes]).flatten().sum() / total_coarsened_units
+    if total_coarsened_units is 1:
+        return old_coords[coarsened_nodes[0]].reshape(2, )
+
+    x = np.array([ old_coords[node, 0] * coarsened_weights[node]**2 for i, node in enumerate(coarsened_nodes[0])]).flatten().sum()
+    y = np.array([ old_coords[node, 1] * coarsened_weights[node]**2 for i, node in enumerate(coarsened_nodes[0])]).flatten().sum()
 
     return np.array([x, y]).reshape(2, )

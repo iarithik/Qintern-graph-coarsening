@@ -29,8 +29,34 @@ class Route(object):
         x, classical_cost, _ = getattr(classical_optimizer, solver)()
         return x, classical_cost
 
-    def routine(self, reduction=0.2, method='nearest'):
-        pass
+    def routine(self, coarsened_route, coarsening_ration=0.2, solver="cplex_solution"):
+        route = []
+        cost = []
+
+        coarsening = coarsened_route.coarsen(coarsening_ration=coarsening_ration)
+        mapping  = coarsened_route._context['mapping']
+        child_graph = coarsened_route._context['graph']
+
+        coarsened_route, metrices = coarsening
+
+        # Optimize the route path
+        x, _ = coarsened_route.solve('cplex_solution')
+        coarsened_routes = coarsened_route.load_routes(x)
+
+        # Edge Lists        
+        parent_edl = edge_list2dict(self._context['graph'].get_edge_list())
+        child_edl  = edge_list2dict(child_graph.get_edge_list())
+
+        # x, cost = self.solve(solver)
+        # self.load_routes(x) # Initializing self.routes
+        for vehicle in range(self.vehicles):
+            inflated_route = self.inflate_route(mapping, child_edl, coarsened_routes, vehicle)
+            normalized_route = self.normalize(inflated_route, parent_edl)
+            route_cost = self.cost(normalized_route, parent_edl)
+
+            route += [normalized_route]
+            cost += [route_cost]
+        return route, cost
     
     def compare_with(self, coarsened_route, mapping):
         pass
@@ -101,16 +127,93 @@ class Route(object):
         return self.routes
     
     # Inflate a coarsened graph with respect to parent graph
-    def inflate_route(self, coarsen_map, child_edl, vehicle = 0):
-        pass
+    def inflate_route(self, mapping, child_edl, coarsened_routes, vehicle = 0):
+        route = coarsened_routes[vehicle]
+
+        # Child to Parent Mapping
+        c, r = np.where((mapping.todense() > 0) )
+        coarsen_map = { i: [] for i in range(mapping.shape[0]) }
+
+        for (_c, _r) in zip(c, r):
+            coarsen_map[_c] += [_r]
+
+        # Replace single element arrays with the element itself
+        for key, value in coarsen_map.items():
+            if len(value) == 1:
+                coarsen_map[key] = int(value[0]) # int as it denotes the node id
+
+        # Expansion
+        for i in range(len(route)):
+            (_from, _to) = route[i]
+            if _from != 0:
+                _from = coarsen_map[_from]
+            if _to != 0:
+                _to = coarsen_map[_to]
+            route[i] = (_from, _to)
+        return route
 
     # Normalize an inflated graph
     def normalize(self, inflated_route, parent_edl):
-        pass
+        partial_normalized_route = []
+        normalized_route = []
 
-    def cost(self, route):
-        _graph = self.pygsp_graph()
-        edl = edge_list2dict(_graph.get_edge_list())
+        # Reduce [2, 2] to 2
+        for (_from, _to) in inflated_route:
+            if type(_from) not in [int, str]:
+                _x, _y = _from
+                if _x == _y:
+                    _from = _x
+            if type(_to) not in [int, str]:
+                _x, _y = _to
+                if _x == _y:
+                    _to = _x
+            partial_normalized_route += [(_from, _to)]
+
+        # Reduce [ (2, array([14,  8])), (array([14,  8]), 3) ]
+        # to     [ (2, 14), (14, 8), (8, 3) ]
+        # or     [ (2, 8), (8, 14), (14, 3) ]
+
+        need_reverse = False # For optimization purpose
+        for i in range(len(partial_normalized_route)):
+
+            (_from, _to) = partial_normalized_route[i]
+
+            if type(_from) in [list, tuple, np.ndarray]:
+                if need_reverse == True:
+                    need_reverse = False
+                    _from = (_from[1], _from[0])
+                if tuple(list(_from)) in normalized_route:
+                    _from = _from[1]
+                else:
+                    normalized_route += [tuple(list(_from))]
+                    _from  = _from[1]
+            if type(_to) in [list, tuple, np.ndarray]:
+                _i = 1
+                look_ahead_from = partial_normalized_route[i+_i][1]
+                while type(look_ahead_from) in [list, tuple, np.ndarray]:
+                    look_ahead_from = partial_normalized_route[i+_i][1]
+                    _i += 1
+                if  (
+                        get_distance(_from, _to[0], parent_edl) +
+                        get_distance(_to[0], _to[1], parent_edl) +
+                        get_distance(_to[1], look_ahead_from, parent_edl) 
+                    ) > (
+                        get_distance(_from, _to[1], parent_edl) +
+                        get_distance(_to[1], _to[0], parent_edl) +
+                        get_distance(_to[1], look_ahead_from, parent_edl)
+                    ):
+                    need_reverse = True
+                    _to = (_to[1], _to[0])
+                normalized_route += [(_from, _to[0]), tuple(list(_to))]
+            else:
+                normalized_route += [(_from, _to)]
+
+        return normalized_route
+
+    def cost(self, route, edl=None):
+        if not edl:
+            _graph = self.pygsp_graph()
+            edl = edge_list2dict(_graph.get_edge_list())
 
         cost = 0
         for (_from, _to) in route:

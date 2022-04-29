@@ -52,10 +52,14 @@ class CoarsenedRoute(Route):
 
 
         _child_route = Route(Gall[1], self.depot, self.vehicles)
+        # Ensure that the pygsp sets coords properly
+        _child_route.pygsp_graph().set_coordinates(coarsened_adjacency_coordinates)
+        _child_route.coords = coarsened_adjacency_coordinates
 
         self._context['original.graph'] = self._context['graph']
         self._context['graph'] = coarsened_graph
         self._context['mapping'] = mapping
+        self._context['coarsened.coordinates'] = coarsened_adjacency_coordinates
         
         return _child_route, metrics
     

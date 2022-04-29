@@ -29,7 +29,7 @@ class Initializer:
         return graph
 
     def generate_instance(self) -> Tuple[List, List, np.array]:
-        xy = np.random.rand(2, self.n)
+        xy = np.random.rand(2, self.n) +  + np.ones((2, self.n))
         xc = xy[0]
         yc = xy[1]
         xy = xy.T

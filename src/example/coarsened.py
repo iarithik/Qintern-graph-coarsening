@@ -2,7 +2,7 @@ from VRP.Instance import Initializer
 from VRP.Route import Route
 from VRP.extend.CoarsenedRoute import CoarsenedRoute
 from VRP.ClassicalSolvers import ClassicalOptimizer
-from VRP.Visualization import visualize_route
+from VRP.Visualization import visualize_route, compare_graphs
 
 import numpy as np
 
@@ -27,17 +27,15 @@ def main():
     assert np.round(cost, 8) == np.round(routes_cost, 8)
 
     # Visualize the routes
-    visualize_route(route.pygsp_graph(), routes, colormap='hsv').savefig('foo.png')
+    uncoarsened_graph = route.pygsp_graph()
+    visualize_route(uncoarsened_graph, routes, colormap='hsv').savefig('foo.png')
 
     '''
     Coarsened Route
     '''
     # Coarsening
-    coarsened_route = CoarsenedRoute(graph, 0, vehicles=2)
-    coarsened_route, metrices = coarsened_route.coarsen(coarsening_ration=0.2)
-
-    # print("Coarsening Quality")
-    # print(metrices)
+    coarsened_route_object = CoarsenedRoute(graph, 0, vehicles=2)
+    coarsened_route, metrices = coarsened_route_object.coarsen(coarsening_ration=0.2)
 
     # Optimize the route path
     x, cost = coarsened_route.solve('cplex_solution')
@@ -46,9 +44,16 @@ def main():
     assert np.round(cost, 8) == np.round(coarsened_routes_cost, 8)
 
     # Visualize the routes
-    visualize_route(coarsened_route.pygsp_graph(), coarsened_routes, colormap='hsv').savefig('coarsened-foo.png')
+    coarsened_graph = coarsened_route.pygsp_graph()
+    visualize_route(coarsened_graph, coarsened_routes, colormap='hsv').savefig('coarsened-foo.png')
 
+    # Visualize Coarsening
+    compare_graphs(uncoarsened_graph, coarsened_graph, labels=['uncoarsened', 'coarsened']).savefig('comparison-coarsening-foo.png')
 
+    # Run the main routine
+    recreated_route, recreated_cost = route.routine(CoarsenedRoute(graph, 0, vehicles=2))
+    visualize_route(uncoarsened_graph, recreated_route, colormap='hsv').savefig('recreated-foo.png')
+    pass
 
 
 if __name__ == '__main__':

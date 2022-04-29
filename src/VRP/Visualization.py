@@ -42,3 +42,24 @@ def visualize_route(graph, routes, colormap='hsv'):
     plt.show()
     return plt
 
+def compare_graphs(graph_1, graph_2, labels = [], colormap='hsv'):
+
+    plt.figure()
+    graph_cmap = get_cmap( 5, name=colormap )
+
+    # Plotting Graph 1
+    [xc, yc] = graph_1.coords.T
+    plt.scatter(xc, yc, s=200, color=graph_cmap(1), alpha=0.5, label=labels[0])
+    i = 0
+    for x, y in zip(xc, yc):
+        plt.annotate(i, (x + 0.075, y), size=16, color="r")
+        i += 1
+
+
+    # Plotting Graph 2
+    [xc, yc] = graph_2.coords.T
+    plt.scatter(xc, yc, s=100, color=graph_cmap(3), alpha=0.5, label=labels[1])
+
+    plt.legend()
+    plt.show()
+    return plt
