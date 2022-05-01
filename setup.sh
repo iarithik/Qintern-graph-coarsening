@@ -10,7 +10,7 @@ source ./.venv/bin/activate
 cd ./src/
 
 # Install coarsening package
-pip3 install .
+pip3 install -e .
 
 # Run tests
 python3 -m pytest ./test/
