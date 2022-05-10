@@ -1,5 +1,5 @@
 import numpy as np
-from VRP.Instance import Initializer
+from VRPGraph import Initializer
 
 NODES = 15
 

@@ -1,5 +1,5 @@
 from .utils import *
-from .ClassicalSolvers import ClassicalOptimizer
+from VRPCO.ClassicalSolvers import ClassicalOptimizer
 
 class Route(object):
     def __init__(self, graph, depot=0, vehicles=2):
