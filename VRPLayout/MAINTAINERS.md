@@ -7,24 +7,24 @@ run setup.bat to install all relevant modules
 The directories used are as follows:
 ![](VRPFileStructure.png)
 
-src:
-    The source code of the repo. In this directory are three primary python modules:
-        VRPCO - Classical Optimisation toolkit
-        VRPGraph - Graph toolkit for the VRP
-        VRPQO - Quantum Optimisation toolkit
+1. src:
+    - The source code of the repo. In this directory are three primary python modules:
+        - VRPCO - Classical Optimisation toolkit
+        - VRPGraph - Graph toolkit for the VRP
+        - VRPQO - Quantum Optimisation toolkit
 
-    Within each python module is a setup file, python source files (defining the module functionality), a test folder (for all unit testing) and a workspace folder (for all notebooks and/or python files used to develop the code which are not official test cases or sample cases).
+    - Within each python module is a setup file, python source files (defining the module functionality), a test folder (for all unit testing) and a workspace folder (for all notebooks and/or python files used to develop the code which are not official test cases or sample cases).
 
-    When adding to or modifying the source code make sure that the relevant setup.py file is up to date and that files are collected in a sensible manner 
+    - When adding to or modifying the source code make sure that the relevant setup.py file is up to date and that files are collected in a sensible manner 
         (i.e under VRPQO.VQE.LayerVQE for a subvariant of the VQE algorithm)
 
     
-data: 
-    includes all routing network information used within over all experimentation
+2. data: 
+    - includes all routing network information used within over all experimentation
 
 
-experiment:
-    Includes the overarching code used to generate results using the whole codebase.
+3. experiment:
+    - Includes the overarching code used to generate results using the whole codebase.
 
 
 
