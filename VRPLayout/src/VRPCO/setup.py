@@ -5,30 +5,29 @@ long_description = '''
 Implementation of space-efficient variational algorithms 
 for the Graph Coloring or Traveling Salesperson problems 
 in Qiskit 
+Classical Optimisation module
 '''
 
 setup(
-    name="VRP",
+    name="VRPCO",
     version="0.0.1",
-    description="A VRP solving toolkit",
+    description="A Classical Optimisation Toolkit for the Vehicle Routing Problem",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://gitlab.com/qworld/qresearch/qintern2021/21_solving-vehicle-routing-problem-and-its-variants-using-quantum-computing_b",
     project_urls={
         "HomePage": "https://qworld.net/",
     },
-    keywords='vrp quantum',
+    keywords='vrp quantum classical optimisation',
     packages=find_packages(),
     install_requires=[
         "matplotlib==3.5.1", 
-        "qiskit[all]", 
-        "qiskit-optimization", 
         "cplex",
         "pygsp",
         "networkx",
         "dwave-ocean-sdk",
+        "pandas",
         "pulp",
-        "graph_coarsening @ git+https://github.com/loukasa/graph-coarsening",
         "pytest"
     ],
     classifiers=[
