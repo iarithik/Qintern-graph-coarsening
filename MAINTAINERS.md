@@ -7,6 +7,8 @@ run setup.bat to install all relevant modules
 The directories used are as follows:
 ![](VRPFileStructure.png)
 
+**Layout**
+
 1. src:
     - The source code of the repo. In this directory are three primary python modules:
         - VRPCO - Classical Optimisation toolkit
@@ -27,7 +29,7 @@ The directories used are as follows:
     - Includes the overarching code used to generate results using the whole codebase.
 
 
-
+**Other**
 
 
 From original Package template: 
