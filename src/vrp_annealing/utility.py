@@ -30,6 +30,42 @@ def generate_vrp_instance(n, seed=None):
     # Return output
     return instance, xc, yc
 
+# Time Window VRP Constants
+# TODO: Adjust these based on experiments or real-world situations, or paramterize these based on problem size
+MAX_EARLIEST_TIME = 5 # The maximum possible "earliest arrival time" (i.e, lower bound for time window)
+MAX_TIME_WINDOW_RANGE = 100 # The largest possible time window size
+
+def generate_time_window_instance(n, seed=None):
+
+    """Generate a random VRP instance with time windows
+    Args:
+        n: No. of nodes exclusing depot.
+        seed: Seed value for random number generator. Defaults to None, which sets a random seed.
+    Returns:
+        A list of (n + 1) x coordinates, 
+        a list of (n + 1) y coordinates, 
+        an (n + 1) x (n + 1) numpy array as the cost matrix, 
+        a list of n time windows that the vehicle must arrive within for each node, not including the depot
+    """
+
+    if seed is not None:
+        np.random.seed(seed)
+
+    # Acquire VRP instance
+    instance, xc, yc = generate_vrp_instance(n)
+
+    # Add time windows
+    # NOTE: Currently, it is possible for a time window to have an earliest arrival time of 0
+    # NOTE: Currently, the depot does not have time windows. 
+    # TODO: Add the option to add a time window that bounds the times for vehicles to return to the depot
+    time_windows = [[None, None]] # Add none values to replace depot time window
+    for node in range(n):
+        earliest_time = round(np.random.rand() * MAX_EARLIEST_TIME)
+        latest_time = round(np.random.rand() * MAX_TIME_WINDOW_RANGE + earliest_time)
+        time_windows.append([earliest_time, latest_time])
+
+    return instance, xc, yc, time_windows
+
 
 def generate_cvrp_instance(n, m, seed=None):
 
