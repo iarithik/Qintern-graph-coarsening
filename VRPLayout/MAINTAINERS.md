@@ -1,6 +1,6 @@
 # Maintenance Guide
 
-This is the new file structure for the Vehicle Routing Problem QIntern 2021 project. This was doen to standardise a file structure to avoid further merging issues and conflicts
+This is the new file structure for the Vehicle Routing Problem QIntern 2021 project. This was done to standardise a file structure to avoid further merging issues and conflicts
 
 run setup.bat to install all relevant modules
 
