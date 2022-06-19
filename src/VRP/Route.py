@@ -65,12 +65,13 @@ class Route(object):
         pass
 
     # Coarsens the graph and return a Route object based on the coarsened graph
-    def coarsen(self, coarsening_ration=0.2, method='nearest') -> object:
+    def coarsen(self, coarsening_ration=0.2, method='variation_neighborhoods') -> object:
+        kmax = 5
         _graph = self.pygsp_graph()
         parent_edl = edge_list2dict(_graph.get_edge_list())
 
         # Coarsen the graph
-        C, Gc, Call, Gall, g_iC, g_coarsening_list = coarsen(_graph, K=self.vehicles, r=coarsening_ration, method=method, max_levels=1) 
+        C, Gc, Call, Gall, g_iC, g_coarsening_list = loukas_coarsen(_graph, K=self.vehicles, r=coarsening_ration, method=method, max_levels=1) 
         metrics = coarsening_quality(_graph, C, kmax=kmax)
 
         assert len(Gall) > 1 # Check if coarsening was successful
