@@ -2,7 +2,7 @@ from pygsp import graphs
 
 from ..utils import *
 from ..Route import Route
-from ..Coarsening import loukas_coarsen, coarsening_quality, Simple_Coarsening
+from ..Coarsening import coarsening_quality, Simple_Coarsening, Loukas_Coarsening
 
 from typing import Union, Dict
 
@@ -36,8 +36,8 @@ class CoarsenedRoute(Route):
         parent_edl = edge_list2dict(_graph.get_edge_list())
 
         # Coarsen the graph
-        # C, Gc, Call, Gall, g_iC, g_coarsening_list = loukas_coarsen(_graph, K=self.vehicles, r=coarsening_ration, method=method, max_levels=1) 
         C, Gc, Call, Gall, g_iC, g_coarsening_list = Simple_Coarsening(_graph)(coarsening_ration)
+        # C, Gc, Call, Gall, g_iC, g_coarsening_list = Loukas_Coarsening(_graph)(coarsening_ration)
         metrics = coarsening_quality(_graph, C, kmax=kmax)
 
         assert len(Gall) > 1 # Check if coarsening was successful

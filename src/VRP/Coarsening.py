@@ -13,108 +13,83 @@ import graph_coarsening.graph_utils
 def coarsening_quality(*args, **kwargs):
     return coarsening_utils.coarsening_quality(*args, **kwargs)
 
-def loukas_coarsen(
-    G,
-    K=10,
-    r=0.5,
-    max_levels=10,
-    method="variation",
-    algorithm="greedy",
-    Uk=None,
-    lk=None,
-    max_level_r=0.99,
-):
-    """
-    This function provides a common interface for coarsening algorithms that contract subgraphs
+class Coarsening:
+    def __init__(self, G, depot=[0]):
 
-    @article{JMLR:v20:18-680,
-        author  = {Andreas Loukas},
-        title   = {Graph Reduction with Spectral and Cut Guarantees},
-        journal = {Journal of Machine Learning Research},
-        year    = {2019},
-        volume  = {20},
-        number  = {116},
-        pages   = {1-42},
-        url     = {http://jmlr.org/papers/v20/18-680.html}
-    }
-
-    Parameters
-    ----------
-    G : pygsp Graph
-    K : int
-        The size of the subspace we are interested in preserving.
-    r : float between (0,1)
-        The desired reduction defined as 1 - n/N.
-    method : String
-        ['variation_neighborhoods', 'variation_edges', 'variation_cliques', 'heavy_edge', 'algebraic_JC', 'affinity_GS', 'kron'] 
+        self.pygsp = G
+        self.depot = depot
+        self.G = nx.from_numpy_matrix(G.W.todense())
+        self.edl = { e:self.G.get_edge_data(*e)['weight'] for e in self.G.edges }
     
-    Returns
-    -------
-    C : np.array of size n x N
-        The coarsening matrix.
-    Gc : pygsp Graph
-        The smaller graph.
-    Call : list of np.arrays
-        Coarsening matrices for each level
-    Gall : list of (n_levels+1) pygsp Graphs
-        All graphs involved in the multilevel coarseningC.
+    def call(self, partition = 0.2):
+        raise NotImplemented()
 
-    Example
-    -------
-    C, Gc, Call, Gall = coarsen(G, K=10, r=0.8)
-    """
-    r = np.clip(r, 0, 0.999)
-    G0 = G
-    N = G.N
+    def __call__(self, partition = 0.2, **kwargs):
+        collapse = self.call(partition=partition, **kwargs)
+        return self.prepare(collapse)
 
-    # current and target graph sizes
-    n, n_target = N, np.ceil((1 - r) * N)
+    def prepare(self, collapse):
+        # Prepare the return Objects
+        G = self.pygsp # The original Graph
+        C = sp.sparse.eye(G.N, format="csc") # Some Variable
 
-    C = sp.sparse.eye(N, format="csc")
-    Gc = G
+        Call = [] # Some Variable
+        Gall = [ G ] # Some Variable
 
-    Call, Gall = [], []
-    Gall.append(G)
+        iC = get_coarsening_matrix(G, collapse) # Coarsening Matrix
 
-    g_coarsening_list = []
-    g_iC = []
+        Wc = graph_utils.zero_diag(coarsen_matrix(G.W, iC)) # coarsen and remove self-loops
+        Wc = (Wc + Wc.T) / 2  # this is only needed to avoid pygsp complaining for tiny errors
+        Gc = gsp.graphs.Graph(Wc, coords=coarsen_vector(G.coords, iC)) # Some Variable
+        
+        C = iC.dot(C)  # Some Variable
+        Call.append(iC)  # Some Variable
+        Gall.append(Gc) # Some Variable
 
-    for level in range(1, max_levels + 1):
+        return C, Gc, Call, Gall, [iC], collapse
 
-        G = Gc
+class Loukas_Coarsening(Coarsening):
+    def __init__(self, G, depot=[0]):
+        super().__init__(G, depot)
+
+    def call(self, partition=0.2, K=10, method="variation", algorithm="greedy"):
+        max_levels=1
+        Uk=None
+        lk=None
+        max_level_r=0.99
+        r = np.clip(partition, 0, 0.999)
+
+        G0 = self.pygsp
+        N = G0.N
+
+        # current and target graph sizes
+        n, n_target = N, np.ceil((1 - r) * N)
+
+        G = G0
 
         # how much more we need to reduce the current graph
         r_cur = np.clip(1 - n_target / n, 0.0, max_level_r)
-
+        
         if "variation" in method:
 
-            if level == 1:
-                if (Uk is not None) and (lk is not None) and (len(lk) >= K):
-                    mask = lk < 1e-10
-                    lk[mask] = 1
-                    lsinv = lk ** (-0.5)
-                    lsinv[mask] = 0
-                    B = Uk[:, :K] @ np.diag(lsinv[:K])
-                else:
-                    offset = 2 * max(G.dw)
-                    T = offset * sp.sparse.eye(G.N, format="csc") - G.L
-                    lk, Uk = sp.sparse.linalg.eigsh(T, k=K, which="LM", tol=1e-5)
-                    lk = (offset - lk)[::-1]
-                    Uk = Uk[:, ::-1]
-                    mask = lk < 1e-10
-                    lk[mask] = 1
-                    lsinv = lk ** (-0.5)
-                    lsinv[mask] = 0
-                    B = Uk @ np.diag(lsinv)
-                A = B
+            if (Uk is not None) and (lk is not None) and (len(lk) >= K):
+                mask = lk < 1e-10
+                lk[mask] = 1
+                lsinv = lk ** (-0.5)
+                lsinv[mask] = 0
+                B = Uk[:, :K] @ np.diag(lsinv[:K])
             else:
-                B = iC.dot(B)
-                d, V = np.linalg.eig(B.T @ (G.L).dot(B))
-                mask = d == 0
-                d[mask] = 1
-                dinvsqrt = d ** (-1 / 2)
-                dinvsqrt[mask] = 0
-                A = B @ np.diag(dinvsqrt) @ V
+                offset = 2 * max(G.dw)
+                T = offset * sp.sparse.eye(G.N, format="csc") - G.L
+                lk, Uk = sp.sparse.linalg.eigsh(T, k=K, which="LM", tol=1e-5)
+                lk = (offset - lk)[::-1]
+                Uk = Uk[:, ::-1]
+                mask = lk < 1e-10
+                lk[mask] = 1
+                lsinv = lk ** (-0.5)
+                lsinv[mask] = 0
+                B = Uk @ np.diag(lsinv)
+            A = B
 
             if method == "variation_edges":
                 coarsening_list = contract_variation_edges(
@@ -138,44 +113,15 @@ def loukas_coarsen(
             elif algorithm == "greedy":
                 coarsening_list = matching_greedy(G, weights=weights, r=r_cur)
 
-        g_coarsening_list += [coarsening_list]
-        iC = get_coarsening_matrix(G, coarsening_list)
-        g_iC += [iC]
-
-        if iC.shape[1] - iC.shape[0] <= 2:
-            break  # avoid too many levels for so few nodes
-
-        C = iC.dot(C)
-        Call.append(iC)
-
-        Wc = graph_utils.zero_diag(coarsen_matrix(G.W, iC))  # coarsen and remove self-loops
-        Wc = (Wc + Wc.T) / 2  # this is only needed to avoid pygsp complaining for tiny errors
-
-        if not hasattr(G, "coords"):
-            Gc = gsp.graphs.Graph(Wc)
-        else:
-            Gc = gsp.graphs.Graph(Wc, coords=coarsen_vector(G.coords, iC))
-        Gall.append(Gc)
-
-        n = Gc.N
-
-        if n <= n_target:
-            break
-
-    return C, Gc, Call, Gall, g_iC, g_coarsening_list
+        return coarsening_list
 
 
-
-class Simple_Coarsening:
+class Simple_Coarsening(Coarsening):
     def __init__(self, G, depot=[0]):
+        super().__init__(G, depot)
+
         self.visited = []
         self.collapse = []
-        self.depot = depot
-
-        self.pygsp = G
-        self.G = nx.from_numpy_matrix(G.W.todense())
-
-        self.edl = { e:self.G.get_edge_data(*e)['weight'] for e in self.G.edges }
 
         self.coarsening_radius = 0
 
@@ -250,29 +196,16 @@ class Simple_Coarsening:
 
         return M
 
-    def __call__(self, partition = 0.2):
+    def call(self, partition = 0.2):
+        # Get the min/max distance to coarsen, i.e. the coarsening radius
         self.coarsening_radius, _, _ = self.partition_weights(partition = partition)
 
+        # Check for the coarsening criteria,
+        # The variable `self.collapse` gets populated
         for n in self.G.nodes:
             self.check_collapsable(n, self.edl)
         
-        # cm = coarsening_matrix(G, collapse)
-        G = self.pygsp
-        C = sp.sparse.eye(G.N, format="csc")
-
-        Call = []
-        Gall = [ G ]
-
-        iC = get_coarsening_matrix(G, self.collapse)
-        Wc = graph_utils.zero_diag(coarsen_matrix(G.W, iC))  # coarsen and remove self-loops
-        Wc = (Wc + Wc.T) / 2  # this is only needed to avoid pygsp complaining for tiny errors
-        Gc = gsp.graphs.Graph(Wc, coords=coarsen_vector(G.coords, iC))
-        
-        C = iC.dot(C)
-        Call.append(iC)
-        Gall.append(Gc)
-
-        return C, Gc, Call, Gall, [iC], self.collapse
+        return self.collapse
 
 
 

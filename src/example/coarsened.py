@@ -50,14 +50,16 @@ def main():
     # Visualize Coarsening
     compare_graphs(uncoarsened_graph, coarsened_graph, labels=['uncoarsened', 'coarsened']).savefig('comparison-coarsening-foo.png')
 
+    '''
+    Re-Construct Route
+    '''
     # Run the main routine
     recreated_route, recreated_cost = route.routine(CoarsenedRoute(graph, 0, vehicles=2))
     visualize_route(uncoarsened_graph, recreated_route, colormap='hsv').savefig('recreated-foo.png')
+    recreated_route_cost = sum([route.cost(vehicle) for vehicle in recreated_route])
+    assert np.round(recreated_route_cost, 8) == np.round(sum(recreated_cost), 8)
 
     are_route_same = (original_routes == recreated_route)
-
-    recreated_route_cost = sum([route.cost(vehicle) for vehicle in recreated_route])
-
     cost_difference = recreated_route_cost - original_routes_cost
     pass
 
