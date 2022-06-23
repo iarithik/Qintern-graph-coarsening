@@ -22,13 +22,13 @@ def main():
     '''
     # Optimize the route path
     x, cost = route.solve('cplex_solution')
-    routes = route.load_routes(x)
-    routes_cost = sum([ route.cost(vehicle) for vehicle in routes ])
-    assert np.round(cost, 8) == np.round(routes_cost, 8)
+    original_routes = route.load_routes(x)
+    original_routes_cost = sum([ route.cost(vehicle) for vehicle in original_routes ])
+    assert np.round(cost, 8) == np.round(original_routes_cost, 8)
 
     # Visualize the routes
     uncoarsened_graph = route.pygsp_graph()
-    visualize_route(uncoarsened_graph, routes, colormap='hsv').savefig('foo.png')
+    visualize_route(uncoarsened_graph, original_routes, colormap='hsv').savefig('foo.png')
 
     '''
     Coarsened Route
@@ -53,6 +53,12 @@ def main():
     # Run the main routine
     recreated_route, recreated_cost = route.routine(CoarsenedRoute(graph, 0, vehicles=2))
     visualize_route(uncoarsened_graph, recreated_route, colormap='hsv').savefig('recreated-foo.png')
+
+    are_route_same = (original_routes == recreated_route)
+
+    recreated_route_cost = sum([route.cost(vehicle) for vehicle in recreated_route])
+
+    cost_difference = recreated_route_cost - original_routes_cost
     pass
 
 
