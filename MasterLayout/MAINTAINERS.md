@@ -11,7 +11,7 @@ This folder structure is created to assist with the overall workflow of solving 
 
 
 The directories used are as follows:
-![](readmeFigs/GeneralDirectoryLayout.png)
+![](readmeFigs/GeneralDirectoryLayout.PNG)
 
 **Layout**
 1. src:
@@ -51,12 +51,12 @@ Solvers represent the fundamental goal of the Quantum Logistics project. Solvers
 
 1. A 'Standard Solver' uses a single encoder and backendsolver pair. The encoder will convert the problem to a mathematical formulation and the backend will solve this formulation using 3rd party software. The encoder will then convert the answer into a route-interpretable format (a list of routes that each vehicle will take). Note, as encoders must output a format that is interpretable by a backendSolver, the format will have to be standardised. I.e quantum solvers may only accept qiskit QUBO objects whereas classical solvers will take ILP objects. Ideally, conversion from qiskit quobo to pulp QUBO will be investigated to directly compare solution times of standard problems. This is presented graphically in:
 
-![](readmeFigs/StandardSolver.png)
+![](readmeFigs/StandardSolver.PNG)
 
 
 2. A 'Composite Solver' is a generalisation of 'Standard Solver'. Here, the solver must have a minumum of a 'solveAlgorithm()' and 'extractSolution()' method. These are user defined and allow for customisation of solution algorithm (such as more complex hybrid methods). *Only make a Composite Solver is your approach cannot be translate to a Standard Solver approach*. A Composite Solver is presented graphically in:
 
-![](readmeFigs/CompositeSolver.png)
+![](readmeFigs/CompositeSolver.PNG)
 
 
 
