@@ -1,0 +1,11 @@
+Paulis Weight
+IIIZ (-24+0j)
+ZIII (-24+0j)
+ZIIZ (24+0j)
+IIZI (-24+0j)
+IZII (-24+0j)
+IZZI (24+0j)
+IZIZ (50000+0j)
+ZIZI (50000+0j)
+IIZZ (50000+0j)
+ZZII (50000+0j)
