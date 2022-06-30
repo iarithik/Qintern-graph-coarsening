@@ -115,7 +115,6 @@ class Loukas_Coarsening(Coarsening):
 
         return coarsening_list
 
-
 class Simple_Coarsening(Coarsening):
     def __init__(self, G, depot=[0]):
         super().__init__(G, depot)
@@ -126,21 +125,28 @@ class Simple_Coarsening(Coarsening):
         self.coarsening_radius = 0
 
     def partition_weights(self, partition=0.2):
+        # TODO : FIXIT
+        '''
+        (1,2): 2.1,
+        (2,1): 5.1,
+        '''
         w = list(self.edl.values())
         w = list(sorted(w))
 
-        size = self.G.number_of_nodes()
-        part = math.floor(size * partition)
+        size = self.G.number_of_nodes() # 20
+        part = math.floor(size * partition) # 4
 
-        return w[part] + w[part+1] / 2, size, part
+        return (w[part] + w[part+1]) / 2, size, part
 
     def check_collapsable(self, curr, edl, debug=True):
+        # TODO : Avoid 2 neghbourin... colla..
+
         visited, collapse, depot = self.visited, self.collapse, self.depot
 
-        if curr in visited:
+        if curr in self.visited:
             return
 
-        visited += [ curr ]
+        self.visited += [ curr ]
 
         # get neighbours       
         neighbour_data = { 
@@ -148,7 +154,7 @@ class Simple_Coarsening(Coarsening):
             if (curr in k) and \
 
             # where k is (a, curr) or (curr, a), `k[k[0] == curr]` will return a
-            (k[k[0] == curr] not in visited)
+            (k[k[0] == curr] not in self.visited)
         }
         
 
@@ -158,9 +164,9 @@ class Simple_Coarsening(Coarsening):
 
         for nodes, weight in neighbours.items():
             a,b = nodes
-            if weight < self.coarsening_radius and ( a not in depot and b not in depot ):
-                collapse += [ nodes ]
-                visited += [ *nodes ]
+            if weight < self.coarsening_radius and ( a not in self.depot and b not in self.depot ):
+                self.collapse += [ nodes ]
+                self.visited += [ *nodes ]
                 if debug:
                     print( f"[+] curr : {curr}", neighbours )
 

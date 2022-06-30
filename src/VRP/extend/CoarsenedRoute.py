@@ -42,7 +42,7 @@ class CoarsenedRoute(Route):
 
         assert len(Gall) > 1 # Check if coarsening was successful
 
-        mapping  = g_iC[0]
+        mapping  = g_iC[0] # Coarsening Matrix : 1st level of coarsening
 
         coarsened_adjacency = Gall[1].W.toarray()
         coarsened_adjacency_distance_norm = get_coarsen_distance_norm(coarsened_adjacency, mapping, parent_edl)

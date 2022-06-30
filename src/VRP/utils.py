@@ -21,6 +21,14 @@ def edl2w(edl):
     return A
 
 def get_distance(_from, _to, edl):
+    # edl = {
+    # (1, 2): 1.1211 ,
+    # (2, 3): 2.12242,
+    # (4, 3): 1.2341
+    # }
+
+    # from -> 3, to -> 4 := (3, 4) or (4, 3)
+    
     return edl.get((_from, _to), edl.get((_to, _from), 0) )
 
 def print_deconstructed_route(routes):

@@ -1,7 +1,7 @@
 from .utils import *
 from .ClassicalSolvers import ClassicalOptimizer
 
-from .Coarsening import loukas_coarsen
+from .Coarsening import Loukas_Coarsening
 
 class Route(object):
     def __init__(self, graph, depot=0, vehicles=2):
@@ -30,6 +30,8 @@ class Route(object):
         return x, classical_cost
 
     def routine(self, coarsened_route, coarsening_ration=0.2, solver="cplex_solution"):
+        # TODO : FIXIT
+
         route = []
         cost = []
 
@@ -71,7 +73,8 @@ class Route(object):
         parent_edl = edge_list2dict(_graph.get_edge_list())
 
         # Coarsen the graph
-        C, Gc, Call, Gall, g_iC, g_coarsening_list = loukas_coarsen(_graph, K=self.vehicles, r=coarsening_ration, method=method, max_levels=1) 
+        # C, Gc, Call, Gall, g_iC, g_coarsening_list = loukas_coarsen(_graph, K=self.vehicles, r=coarsening_ration, method=method, max_levels=1) 
+        C, Gc, Call, Gall, g_iC, g_coarsening_list = Loukas_Coarsening(_graph)(coarsening_ration)
         metrics = coarsening_quality(_graph, C, kmax=kmax)
 
         assert len(Gall) > 1 # Check if coarsening was successful
@@ -129,6 +132,10 @@ class Route(object):
     
     # Inflate a coarsened graph with respect to parent graph
     def inflate_route(self, mapping, child_edl, coarsened_routes, vehicle = 0):
+        # coarsened_routes = [
+        #      [(0, 1), (1, 5), (5, 0)],
+        #      [(0, 2), ....]
+        # ]
         route = coarsened_routes[vehicle]
 
         # Child to Parent Mapping
@@ -155,7 +162,8 @@ class Route(object):
 
     # Normalize an inflated graph
     def normalize(self, inflated_route, parent_edl):
-        partial_normalized_route = []
+        # TODO : FIXIT
+        partial_normalized_route = [] 
         normalized_route = []
 
         # Reduce [2, 2] to 2
@@ -194,14 +202,18 @@ class Route(object):
                 while type(look_ahead_from) in [list, tuple, np.ndarray]:
                     look_ahead_from = partial_normalized_route[i+_i][1]
                     _i += 1
+
+                # _from => 15, _to => [1, 12], look_ahead_from => 10
+                # ( 15 <-> 1 <-> 12 <--> 10 ) < ( 15 <-> 12 <-> 1 <--> 10 )
+
                 if  (
                         get_distance(_from, _to[0], parent_edl) +
-                        get_distance(_to[0], _to[1], parent_edl) +
+                        get_distance(_to[0], _to[1], parent_edl) + # This could be removed
                         get_distance(_to[1], look_ahead_from, parent_edl) 
                     ) > (
                         get_distance(_from, _to[1], parent_edl) +
-                        get_distance(_to[1], _to[0], parent_edl) +
-                        get_distance(_to[1], look_ahead_from, parent_edl)
+                        get_distance(_to[1], _to[0], parent_edl) + # This could be removed
+                        get_distance(_to[0], look_ahead_from, parent_edl)
                     ):
                     need_reverse = True
                     _to = (_to[1], _to[0])
