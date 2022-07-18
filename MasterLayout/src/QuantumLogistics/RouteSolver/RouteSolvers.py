@@ -14,7 +14,9 @@ class CompositeRouteSolver(ABC):
 
     
     def solve(self,route:Route, config = None):
-        #Manages graph coarsening if needed. 
+        """
+            DO NOT OVERWRITE METHOD
+        """
 
         # check if graph must be coarsened
         if route.coarsen:
@@ -24,7 +26,9 @@ class CompositeRouteSolver(ABC):
         routeSol = self.extractSolution(problemSol)
 
         if route.coarsen:
-            route.inflateGraph()
+            route.visualiseSolution(routeSol)
+            routeSol = route.inflateGraph(routeSol)
+            route.graph = route.originalGraph
 
         return routeSol
 
@@ -76,8 +80,4 @@ class StandardRouteSolver(CompositeRouteSolver):
 
 
 
-
-
-# example of defining class:
-# StandardQAOAQISKIT = StandardRouteSolver(baseQUBO, QiskitSolver)
 

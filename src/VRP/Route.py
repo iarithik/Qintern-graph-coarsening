@@ -60,6 +60,8 @@ class Route(object):
             cost += [route_cost]
         return route, cost
     
+
+
     def compare_with(self, coarsened_route, mapping):
         pass
 
@@ -132,6 +134,9 @@ class Route(object):
     
     # Inflate a coarsened graph with respect to parent graph
     def inflate_route(self, mapping, child_edl, coarsened_routes, vehicle = 0):
+        
+        print("Now inflating the route")
+
         # coarsened_routes = [
         #      [(0, 1), (1, 5), (5, 0)],
         #      [(0, 2), ....]
@@ -142,13 +147,21 @@ class Route(object):
         c, r = np.where((mapping.todense() > 0) )
         coarsen_map = { i: [] for i in range(mapping.shape[0]) }
 
+        print(mapping)
+        print(coarsen_map)
+
+
         for (_c, _r) in zip(c, r):
             coarsen_map[_c] += [_r]
+
+        print(coarsen_map)
 
         # Replace single element arrays with the element itself
         for key, value in coarsen_map.items():
             if len(value) == 1:
                 coarsen_map[key] = int(value[0]) # int as it denotes the node id
+
+        print(coarsen_map)
 
         # Expansion
         for i in range(len(route)):
@@ -158,7 +171,14 @@ class Route(object):
             if _to != 0:
                 _to = coarsen_map[_to]
             route[i] = (_from, _to)
+
+            
+        print(n)
+        
+        
         return route
+
+
 
     # Normalize an inflated graph
     def normalize(self, inflated_route, parent_edl):

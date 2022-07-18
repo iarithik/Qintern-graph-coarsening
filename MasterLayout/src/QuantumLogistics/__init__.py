@@ -2,6 +2,7 @@
 # Graph and Route Classes
 from QuantumLogistics.LogisticsRoute.LogisticsGraph import logisticsGraph
 from QuantumLogistics.LogisticsRoute.LogisticsRoute import Route
+from QuantumLogistics.LogisticsRoute.GraphCoarsening import BlankCoarseningEngine, DeltaCoarseningEngine
 
 
 #Interface classes

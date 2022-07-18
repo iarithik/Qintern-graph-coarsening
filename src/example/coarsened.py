@@ -30,11 +30,15 @@ def main():
     uncoarsened_graph = route.pygsp_graph()
     visualize_route(uncoarsened_graph, original_routes, colormap='hsv').savefig('foo.png')
 
+
+
+
     '''
     Coarsened Route
     '''
     # Coarsening
     coarsened_route_object = CoarsenedRoute(graph, 0, vehicles=2)
+
     coarsened_route, metrices = coarsened_route_object.coarsen(coarsening_ration=0.2)
 
     # Optimize the route path
@@ -61,7 +65,14 @@ def main():
 
     are_route_same = (original_routes == recreated_route)
     cost_difference = recreated_route_cost - original_routes_cost
+
     pass
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

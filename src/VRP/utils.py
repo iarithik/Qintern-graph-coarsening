@@ -40,25 +40,44 @@ def print_deconstructed_route(routes):
             print('-->', _to, end=' ')
         print()
 
+
 def node_from_mapping(ix, mapping):
+    """
+        Returns the attributed fine nodes to a given coarse node
+    """
+
     if hasattr(mapping, 'toarray'):
         mapping = mapping.toarray()
+
     layout_data_c, layout_data_o = np.where(mapping > 0)
+
     return [ o for c, o in zip(layout_data_c, layout_data_o) if ix == c ]
 
 
+
 def get_coarsen_distance_norm(coarsened_adjacency, mapping, parent_edl):
+    """
+        going from coarse mapping to fine mapping
+    """
     adjacency = coarsened_adjacency.copy()
     shape = coarsened_adjacency.shape
     node_n = shape[0]
+
     for ix in range(node_n):
         for iy in range(node_n):
             # this is ix node to iy node
-            n_x = node_from_mapping(ix, mapping)[0]
+
+            n_x = node_from_mapping(ix, mapping)[0] # # only taking the first node of the contraction ??????    the first fine node mapped to coarse node
             n_y = node_from_mapping(iy, mapping)[0]
+
             distance = get_distance(n_x, n_y, parent_edl)
             adjacency[ix, iy] = distance
+    
     return adjacency
+
+
+
+
 
 def reframe_coordinates(coarsened_adjacency, original_graph, mapping):
     adjacency = coarsened_adjacency.copy()

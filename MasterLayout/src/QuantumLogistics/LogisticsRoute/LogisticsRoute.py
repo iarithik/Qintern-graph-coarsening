@@ -1,8 +1,10 @@
 import matplotlib.pyplot as plt
-
+from QuantumLogistics.LogisticsRoute.GraphCoarsening import BlankCoarseningEngine
+import numpy as np
+import scipy as sp
 
 class Route(object):
-    def __init__(self, LogisticsGraph, config):
+    def __init__(self, LogisticsGraph, config, coarseningEngine = None):
         
         graph = LogisticsGraph.graph
 
@@ -11,7 +13,7 @@ class Route(object):
             'graph': graph
         }
 
-        self.graph = graph                          # Logistics
+        self.graph = graph                          # PyGSP graph object
         self.n = LogisticsGraph.n                   # Number of nodes
         self.depot = config["depot"]                # ID of the depot (default 0)
         self.cursor = config["depot"]               # Current location of the cursor vehicle
@@ -19,8 +21,18 @@ class Route(object):
         self.coords = getattr(graph, 'coords', [])  # Coordinates of the nodes
         self.routes = None              # Calculated Routes
         self.solution = None
+
+        # Coarsening Parameters:
+
         self.coarsen = False
 
+        if coarseningEngine == None:
+            self.coarseningEngine = BlankCoarseningEngine()
+        else:
+            self.coarseningEngine = coarseningEngine
+            
+        self.coarsenRate = self.coarseningEngine.rate
+        
         #Must ADD Capacities and Time Windows
 
     def __call__(self, ):
@@ -76,17 +88,22 @@ class Route(object):
         RGB color; the keyword argument name must be a standard mpl colormap name.'''
         return plt.cm.get_cmap(name, n)
 
+
     def pygsp_graph(self):
         """
             Returns the source graph PyGSP object
         """
         return self._context['graph']
 
+
     def graphEdges2Dict(self, graph):
         edge_list = graph.get_edge_list()
         n1, n2, w = edge_list
         assert len(n1) == len(n2) == len(w)
         return { (n1[i], n2[i]):w[i] for i in range(len(n1)) }
+
+
+
 
     def calculateCost(self, solution):
         """
@@ -102,23 +119,6 @@ class Route(object):
 
         return cost
 
-
-
-
-
-    def coarsenGraph(self, coarsenParams, coarsenEngine):
-        """
-            Coarsens the graph using the coarseningEngine (way of specifying how to coarsen)
-        """
-        print("NOT IMPLEMENTED YET")
-        raise NotImplementedError
-
-
-    def inflateGraph(self, solution):
-        """
-            Inflates solution from solver to coarsen engine
-        """
-        raise NotImplementedError
 
 
     def recordMetaData(self):
@@ -139,3 +139,80 @@ class Route(object):
 
 
 
+    def coarsenGraph(self):
+        """
+            Coarsens the graph using the coarseningEngine defined in the route instantiation
+        """
+        #print("COARSENING ROUTE")
+        # General parameters
+        coarseningRate = self.coarseningEngine.rate
+        initialGraphSize = self.n
+        newGraphSize = initialGraphSize
+
+        # History lists
+        self.originalGraph = self.graph   #pygsp object
+        self.coarsenGraphHistory = [self.originalGraph]
+        self.coarsenMappingHistory = [sp.sparse.eye(self.originalGraph.N, format="csc")]
+
+        # Setting graph variable
+        graphToCoarsen = self.graph
+
+        # Coarsening graphs - probably need to do metrics here to compare the original to final
+        while newGraphSize > coarseningRate * initialGraphSize:
+            # Coarsening
+            coarsenedGraph, fineToCoarseMapping = self.coarseningEngine.coarsen(graphToCoarsen, self.depot)
+            
+            # Saving history and iterating
+            self.coarsenGraphHistory.append(coarsenedGraph)
+            self.coarsenMappingHistory.append(fineToCoarseMapping)
+            graphToCoarsen = coarsenedGraph
+
+            coarseGraphSize = coarsenedGraph.N
+
+            if coarseGraphSize == newGraphSize:
+                print("Has not decreased in size, terminating now: ")
+                break
+            
+            newGraphSize = coarseGraphSize
+
+            plotCoords = False
+            if plotCoords == True:
+                plt.scatter(self.originalGraph.coords[:,0], self.originalGraph.coords[:,1])
+                plt.scatter(coarsenedGraph.coords[:,0], coarsenedGraph.coords[:,1])
+                plt.show()
+
+        self.graph = graphToCoarsen
+        
+        print("Final coarse graph has {0} nodes".format(self.graph.N))
+
+        return
+
+
+
+
+    def inflateGraph(self, solution):
+        """
+            Inflates solution from solver to coarsen engine
+        """
+
+        # need to inflate through graphs:
+        coarseGraphSol = solution #- list of lists for each vehicle
+
+        inflatedRoutes = coarseGraphSol
+
+        # Stepping through history
+        for graphIdx in range(len(self.coarsenGraphHistory) - 1, 0, -1):
+            coarsenedGraph = self.coarsenGraphHistory[graphIdx-1]
+            coarseningMatrix = self.coarsenMappingHistory[graphIdx]
+            inflatedSolution = self.coarseningEngine.inflateSolution(coarseGraphSol, coarsenedGraph, coarseningMatrix)
+            inflatedRoutes.append(inflatedSolution)
+
+            # Setting current inflated to new coarse:
+            coarseGraphSol = inflatedSolution
+    
+        return  inflatedSolution
+
+
+
+
+        

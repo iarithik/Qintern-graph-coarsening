@@ -35,7 +35,7 @@ class logisticsGraph:
 
 
     def generateGraphPoints(self) -> Tuple[List, List, np.array]:
-        xy = np.random.rand(2, self.n)
+        xy = np.random.rand(2, self.n) +  + np.ones((2, self.n)) #What is the ones offset for??
         xc = xy[0]
         yc = xy[1]
         xy = xy.T

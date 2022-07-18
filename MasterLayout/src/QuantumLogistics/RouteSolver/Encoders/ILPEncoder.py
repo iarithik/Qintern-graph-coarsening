@@ -23,7 +23,7 @@ class ILPPulpEncoder(Encoder):
         """Uses pulp to return the definition of ILP problem"""
         # to remember the route characteristics
         self.route = route
-        n = route.n
+        n = route.graph.N
         K = route.vehicles
         graphAdjMatr = route.graph.W.toarray() 
 
@@ -115,13 +115,13 @@ class ILPPulpEncoder(Encoder):
 
 
 
-    def extract(self, solution, verbose = False):
+    def extract(self, solution, verbose = True):
         """
             Returns the route lists from the PULP ILP in the correct format
         """
         # convert to route solution format
         #route information
-        n = self.route.n
+        n = self.route.graph.N
         _k = n*n
         depotIdx = self.route.depot
         vehicleNumber = self.route.vehicles
@@ -130,6 +130,8 @@ class ILPPulpEncoder(Encoder):
         routes = []
         _chain = []
 
+        #print(depotIdx)
+
         travel_metrices = solution[0:_k].reshape((n, n))
 
         for ix in range(0, n):
@@ -137,20 +139,30 @@ class ILPPulpEncoder(Encoder):
                 if travel_metrices[ix][iy] > 0:
                     if (ix, iy) not in _chain and ix != iy:
                         _chain += [(ix, iy)]
-        
+
+        #print(_chain)
+
         for vehicle in range(vehicleNumber):
             cur = depotIdx
             route = []
             travel = True
             if verbose: print(f"{cur}", end='  ')
+            counter = 0
             while travel:
+                counter+= 1
+
                 element = [(_from, _to) for (_from, _to) in _chain if _from == cur]
                 (_from, _to) = element[vehicle] if len(element) > 1 else element[0]
                 cur = _to
                 route += [(_from, _to)]
                 if verbose: print(f"->  {_to}", end='  ')
+
                 if cur == depotIdx:
                     travel = False
+
+                # if counter > 100:
+                #     print(r)
+
             routes += [route]
             if verbose: print()
 

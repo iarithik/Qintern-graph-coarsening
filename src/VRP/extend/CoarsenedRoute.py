@@ -19,6 +19,10 @@ class CoarsenedRoute(Route):
     def optimize_route(self, route):
         pass
 
+
+
+
+
     # Coarsens the graph and return a Route object based on the coarsened graph
     def coarsen(self, coarsening_ration=0.2, kmax=4, method='variation_neighborhoods') -> Union[Route, Dict]:
         """_summary_
@@ -32,28 +36,47 @@ class CoarsenedRoute(Route):
             Route: The route object with the coarsened graph
             Dict: The metrics representing the coarsening quality
         """
+        # gets pygsp graph
         _graph = self.pygsp_graph()
+
+        # gets parent edge list
         parent_edl = edge_list2dict(_graph.get_edge_list())
 
         # Coarsen the graph
+        # C
+        # GC
+        # Call
+        # g_iC
+        # g_coarsening_list
+
         C, Gc, Call, Gall, g_iC, g_coarsening_list = Simple_Coarsening(_graph)(coarsening_ration)
+
         # C, Gc, Call, Gall, g_iC, g_coarsening_list = Loukas_Coarsening(_graph)(coarsening_ration)
+        # C -       Loukases Coarsening Vector - weighted by sqrt(1/N) where N is the size of the sub partition
+        # Gall -    both coarse and fine graph
+        # g_iC -    coursening matrix
+
         metrics = coarsening_quality(_graph, C, kmax=kmax)
 
         assert len(Gall) > 1 # Check if coarsening was successful
 
         mapping  = g_iC[0] # Coarsening Matrix : 1st level of coarsening
-
         coarsened_adjacency = Gall[1].W.toarray()
+
+
+        # UPDATING ADJACENCY MATRIX TO BE CONSISTENT WITH THE SPATIAL DEFINITION
+        # Currently calculating distance between nodes to update the adjacency matrix based on the first mapped fine node position 
         coarsened_adjacency_distance_norm = get_coarsen_distance_norm(coarsened_adjacency, mapping, parent_edl)
         coarsened_adjacency_coordinates = reframe_coordinates(coarsened_adjacency, _graph, mapping)
 
+        # new coarsened graph: - GENERATING NEW COARSE GRAPH
         coarsened_graph = graphs.Graph(coarsened_adjacency_distance_norm)
         coarsened_graph.set_coordinates(coarsened_adjacency_coordinates)
 
-
+        # coarsened route - GENERATING NEW COARSE ROUTE
         _child_route = Route(Gall[1], self.depot, self.vehicles)
         # Ensure that the pygsp sets coords properly
+
         _child_route.pygsp_graph().set_coordinates(coarsened_adjacency_coordinates)
         _child_route.coords = coarsened_adjacency_coordinates
 
@@ -64,6 +87,10 @@ class CoarsenedRoute(Route):
         
         return _child_route, metrics
     
+
+
+
+
     # Returns the mapping of the coarsening to the original graph
     def coarsen_mapping(self, ):
         return self._context('mapping', None)
