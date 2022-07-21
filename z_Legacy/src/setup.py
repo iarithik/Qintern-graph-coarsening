@@ -8,26 +8,27 @@ in Qiskit
 '''
 
 setup(
-    name="QuantumLogistics",
+    name="VRP",
     version="0.0.1",
-    description="A quantum optimisation toolkit for the Vehicle routing problem",
+    description="A VRP solving toolkit",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://gitlab.com/qworld/qresearch/qintern2021/21_solving-vehicle-routing-problem-and-its-variants-using-quantum-computing_b",
     project_urls={
         "HomePage": "https://qworld.net/",
     },
-    keywords='quantum logistics',
+    keywords='vrp quantum',
     packages=find_packages(),
     install_requires=[
         "matplotlib==3.5.1", 
+        "qiskit[all]", 
+        "qiskit-optimization", 
         "cplex",
         "pygsp",
         "networkx",
-        "qiskit",
-        "qiskit_optimization",
         "dwave-ocean-sdk",
         "pulp",
+        "graph_coarsening @ git+https://github.com/loukasa/graph-coarsening",
         "pytest"
     ],
     classifiers=[
