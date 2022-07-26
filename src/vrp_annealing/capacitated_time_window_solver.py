@@ -46,6 +46,7 @@ class CVRPTW():
             v is from the set of nodes V_prime = {0, ..., n, n+1, ..., n+k-1},
                 where n, n+1, ..., n+k-1 are copies of the depot.
             t is from the set of timesteps {0, ..., |V_prime|-1}
+        FIXME: All for loops iterating over time might need to be changed to range(self.n+self.k-1)
         '''
         x = [[Binary(f'x.{t}.{v}') for v in range(self.n+self.k)] for t in range(self.n+self.k)]
 
