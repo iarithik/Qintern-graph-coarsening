@@ -6,7 +6,7 @@ from QuantumLogistics.LogisticsRoute.GraphCoarsening import BlankCoarseningEngin
 
 
 #Interface classes
-from QuantumLogistics.RouteSolver.RouteSolvers import StandardRouteSolver
+from QuantumLogistics.RouteSolver.RouteSolvers import StandardRouteSolver, CompositeRouteSolver
 from QuantumLogistics.RouteSolver.SolverBackends.SolverBackends import solver
 from QuantumLogistics.RouteSolver.Encoders.StandardEncoder import Encoder
 

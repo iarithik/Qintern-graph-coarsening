@@ -122,6 +122,8 @@ class ILPPulpEncoder(Encoder):
     def extract(self, solution, verbose = True):
         """
             Returns the route lists from the PULP ILP in the correct format
+            Format is: 
+            
         """
         # convert to route solution format
         #route information
@@ -134,8 +136,6 @@ class ILPPulpEncoder(Encoder):
         routes = []
         _chain = []
 
-        #print(depotIdx)
-
         travel_metrices = solution[0:_k].reshape((n, n))
 
         for ix in range(0, n):
@@ -143,8 +143,6 @@ class ILPPulpEncoder(Encoder):
                 if travel_metrices[ix][iy] > 0:
                     if (ix, iy) not in _chain and ix != iy:
                         _chain += [(ix, iy)]
-
-        #print(_chain)
 
         for vehicle in range(vehicleNumber):
             cur = depotIdx
@@ -163,9 +161,6 @@ class ILPPulpEncoder(Encoder):
 
                 if cur == depotIdx:
                     travel = False
-
-                # if counter > 100:
-                #     print(r)
 
             routes += [route]
             if verbose: print()
@@ -190,6 +185,7 @@ class ILPCPLEXEncoder(ILPPulpEncoder):
     """
         Converts the route into an ILP problem
         Inherits the extract() method from the ILPPulpEncoder Class (they have equivalent answers)
+        THIS NEEDS TO BE UPDATED
     """
 
     def encode(self,route) -> cplex.Cplex:

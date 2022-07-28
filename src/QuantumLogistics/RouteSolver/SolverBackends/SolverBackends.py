@@ -14,16 +14,23 @@ class solver(ABC):
         return
 
     @abstractclassmethod
-    def solve(encoder):
+    def solve(self, problemFormat, config):
+        """
+            This accepts a standardised problemFormat datatype (dependant on encoder) and runs the problem using a specified solver backend.
+
+            This format should be as general as possible to cater to a wide range of solvers. 
+
+            For example:
+                ILP problems accepts a PULP problem which encodes the ILP problem
+                Standard qubo problems will likely accept a standard 'QUBO' format that can be readily converted into DWAVE, QISKIT etc solver format.
+
+        """
 
         raise NotImplementedError
 
 
 class PulpSolver(solver):
     def __init__(self):
-        #self.gap_rel = gap_rel
-        #self.time_lim = time_lim
-        #self.solver = self.defineSolver()
         return
 
     def defineSolver(self):

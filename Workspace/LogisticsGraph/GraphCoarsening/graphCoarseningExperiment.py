@@ -8,6 +8,11 @@ if __name__ == "__main__":
     # If using random number generators will need to do statistical (repeatable) experiments for each type
     # This code serves as a 'guiding light' to design the new code for this experiment.
 
+    ## TO ADD TO CODE:
+    # Coarsening must check that coarsened node has cap < Q to ensure feasability
+
+
+
     # 1. Graphs Definition
     graphTypes = ["fully_connected"] #, "random", "small_world"] ["random"] #
     numberOfNodes = 25
