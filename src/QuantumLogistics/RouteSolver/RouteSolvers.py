@@ -1,4 +1,6 @@
 from abc import ABC, abstractclassmethod
+from time import time
+import pygsp
 
 from QuantumLogistics import Route # solver #, Encoder, solver
 
@@ -19,20 +21,30 @@ class CompositeRouteSolver(ABC):
         """
 
         self.config = config
+        startTime = time()
 
         # check if graph must be coarsened
         if route.coarsen:
+            print("Coarsening Graph now")
             route.coarsenGraph()
+        
+        # pygsp.plotting.plot_graph(route.graph)
+        # input("Press here")
 
         problemSol = self.solveAlgorithm(route)
         routeSol = self.extractSolution(problemSol)
 
         if route.coarsen:
-            route.visualiseSolution(routeSol)
+            #route.visualiseSolution(routeSol)
             routeSol = route.inflateGraph(routeSol)
             route.graph = route.originalGraph
 
-        return routeSol
+        # Standard solver details
+        solveTime = time() - startTime
+        costValue = route.calculateCost(routeSol)
+
+        return routeSol, solveTime, costValue
+
 
     @abstractclassmethod
     def solveAlgorithm(self, route: Route):
@@ -97,7 +109,7 @@ class StandardRouteSolver(CompositeRouteSolver):
 
     def extractSolution(self,solverSolution):
         # must return standard solution
-        return self.encoder.extract(solverSolution)
+        return self.encoder.extract(solverSolution, verbose=False)
 
 
 

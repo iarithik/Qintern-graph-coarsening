@@ -37,7 +37,6 @@ class ILPPulpEncoder(Encoder):
 
         # Capacities:
         nodeCapacities = route.nodeCapacities
-
         Q = self.route.truckCapacity
 
         # Start the LP problem definition
@@ -54,7 +53,7 @@ class ILPPulpEncoder(Encoder):
         # merge both dictionaries
         l = [var_x, var_u]
         dec_vars = {**l[0], **l[1]}
-
+        
         # create the dictonary for the weights:
         my_obj = list(graphAdjMatr.reshape(1, n ** 2)[0]) + [0.0 for x in range(0, n - 1)]
         weight_opt = dict(zip(dec_vars, my_obj))
@@ -102,9 +101,6 @@ class ILPPulpEncoder(Encoder):
         #     col = [(ii) * (n + 1)]
         #     prob += pl.lpSum([dec_vars[k] for k in col]) == 0
 
-
-
-
         return prob
 
 
@@ -115,15 +111,11 @@ class ILPPulpEncoder(Encoder):
         raise NotImplementedError
 
 
-
-
-
-
     def extract(self, solution, verbose = True):
         """
             Returns the route lists from the PULP ILP in the correct format
             Format is: 
-            
+
         """
         # convert to route solution format
         #route information
@@ -144,6 +136,9 @@ class ILPPulpEncoder(Encoder):
                     if (ix, iy) not in _chain and ix != iy:
                         _chain += [(ix, iy)]
 
+
+        #self.route.visualiseSolution([_chain])
+
         for vehicle in range(vehicleNumber):
             cur = depotIdx
             route = []
@@ -156,12 +151,18 @@ class ILPPulpEncoder(Encoder):
                 element = [(_from, _to) for (_from, _to) in _chain if _from == cur]
                 (_from, _to) = element[vehicle] if len(element) > 1 else element[0]
                 cur = _to
+                if (_from, _to) in route:
+                    print("There is a repeating cycle")
+                    print((_from, _to))
+                    self.route.visualiseSolution([route])
+                    print(ThisWillErrorThingsOut)
+                    break
                 route += [(_from, _to)]
                 if verbose: print(f"->  {_to}", end='  ')
 
                 if cur == depotIdx:
                     travel = False
-
+                #print(route)
             routes += [route]
             if verbose: print()
 

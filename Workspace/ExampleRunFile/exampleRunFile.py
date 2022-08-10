@@ -61,13 +61,15 @@ def solveRoutingProblem(testSolver: CompositeRouteSolver, testSolverConfig: dict
     ############################################################################################################################
 
     # statistical analysis
-    numberofGraphSamples = 30
+    numberofGraphSamples = 20
 
     #generate a list of seeds used in run (for future reference)
-    #np.savetxt("seedFiles.txt",np.random.randint(50000, size = numberofGraphSamples))
+    np.savetxt("seedFiles.txt",np.random.randint(50000, size = numberofGraphSamples))
 
     #Loading Seeds
     seeds = np.loadtxt("seedFiles.txt").astype(np.int32)
+
+    #numberofGraphSamples = len(seeds)
 
     SolutionList = []
 

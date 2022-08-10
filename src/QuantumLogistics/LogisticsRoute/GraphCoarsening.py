@@ -75,7 +75,7 @@ class DeltaCoarseningEngine:
 
 
 
-    def coarsen(self, graph, depot, nodeWeights):
+    def coarsen(self, graph, depot, nodeWeights, maxCapacity):
         """
             Accepts a LogisticsRoute object
             Returns:
@@ -87,18 +87,39 @@ class DeltaCoarseningEngine:
         self.graph = graph
         self.graphWeights = nodeWeights
         self.depot = [depot]
+        self.maxCapacity = maxCapacity
 
         #TODO: Is there any reason this is using networkx? Need to move towards a consistent graph package
+        # Better to remove depot node from network and go from adjacency matrix
         self.G = nx.from_numpy_matrix(self.graph.W.todense())
-        self.edgList = { e:self.G.get_edge_data(*e)['weight'] for e in self.G.edges }
+        self.edgList = { e:self.G.get_edge_data(*e)['weight'] for e in self.G.edges}
+        tempEdgList = self.edgList.copy()
 
-        # get coarsening radius
-        coarseningRadius = self.generateCoarseningRadius()
-        #print(coarseningRadius)
+        # removing edges to 0:
+        for key in list(tempEdgList.keys()):
+            if 0 in key:
+                tempEdgList.pop(key)
 
-        # identify node pairs that can be coarsened in graph
-        pairsToCoarsen = self.identifyCoarseningPairs(coarseningRadius)
-        #print(pairsToCoarsen)
+        pairsToCoarsen = []
+        bounds = 1
+        whileCounter = 0
+
+        while len(pairsToCoarsen) == 0 and whileCounter < 10:
+            # get coarsening radius
+            coarseningRadius = self.generateCoarseningRadius(tempEdgList, bounds*self.radiusCoefficient)
+
+            # print("\n\n\n")
+            # print("COARSENING NEW GRAPH")
+            # print("Coarsening Radius :", coarseningRadius)
+            
+            # identify node pairs that can be coarsened in graph
+            pairsToCoarsen = self.identifyCoarseningPairs(coarseningRadius)
+
+            # adjusting bouds if no pairs found
+            bounds = 1.4 * bounds
+
+            whileCounter += 1
+
 
         # Coarsen Graph - what is the point of this if everything gets overwritten anyway?
         coarseningMatrix, coarseGraph = self.generateCoarseGraph(pairsToCoarsen)
@@ -133,6 +154,8 @@ class DeltaCoarseningEngine:
         # Creating coarsening matrix based on pairs of nodes to contract
         C = get_coarsening_matrix(G, nodePairsToCoarsen)                       # level n to level n-1 coarsening Matrix 
 
+        #print(C)
+
         # Coarse Graph Coords:
         coarseCoords = coarsen_vector(G.coords, C)
 
@@ -166,7 +189,7 @@ class DeltaCoarseningEngine:
 
 
 
-    def generateCoarseningRadius(self):
+    def generateCoarseningRadius(self, edgList, partitionCoefficient):
         """
             Returns the radius under which nodes are coarsened
             Based on parition weights
@@ -176,9 +199,9 @@ class DeltaCoarseningEngine:
         (1,2): 2.1,
         (2,1): 5.1,
         '''
-        partition = self.radiusCoefficient
+        partition = partitionCoefficient 
 
-        w = list(self.edgList.values())
+        w = list(edgList.values())
         w = list(sorted(w))
 
         size = self.G.number_of_nodes() # 20
@@ -200,11 +223,7 @@ class DeltaCoarseningEngine:
         self.collapse = []
 
         # order nodes based on weights (minimum weight first)
-        # print(self.graphWeights)
         sortedIdxs = np.argsort(self.graphWeights)
-        # print(sortedIdxs)
-        # print(self.G.nodes)
-        # input("Here")
 
         for n in sortedIdxs: 
         #for n in self.G.nodes:
@@ -232,7 +251,14 @@ class DeltaCoarseningEngine:
         # Possible speed up?
         for nodes, weight in neighbours.items():
             a,b = nodes
-            if weight < coarseningRadius and (a not in self.depot and b not in self.depot) and (a not in self.visited and b not in self.visited):
+            coarsenedNodeCapacity = self.graphWeights[a] + self.graphWeights[b]
+            # Checks the followiung:
+                # If edge is small enough to contract
+                # If a nd b not the depot (cannot contract the depot)
+                # A and B have not already been coarsened/attached to a coarsened node
+                # the combined capacity of a coarsened a+b node is less than the capacity of a given truck
+
+            if weight < coarseningRadius and (a not in self.depot and b not in self.depot) and (a not in self.visited and b not in self.visited) and (coarsenedNodeCapacity < self.maxCapacity):
                 self.collapse += [ nodes ]
                 self.visited += [ *nodes ]
 
@@ -243,27 +269,42 @@ class DeltaCoarseningEngine:
 
                 if debug:
                     print( f"[+] curr : {curr}", neighbours )
+                    print(f"Adding Nodes: {nodes}")
+                    print(f'updated visitedList: {self.visited}')
+                    print("\n")
+
                 return
 
         self.visited += [ curr ]
 
         if debug:
             print( f"[ ] curr : {curr}", neighbours )
-        
+            print(f'updated visitedList: {self.visited}')
+            print("\n")
+
         for nodes in set([ i for n in list(neighbours.keys()) for i in n ]):
             self.check_collapsable(nodes, edgList, coarseningRadius)
 
-        
         return
 
 
 
-
-
     def getNeighbourData(self, node, edgList):
+        # Finds all neighbours who have not been visited
+        # Returns a dict of {(node, neighbourNode):edgeWeight}
         
-        # get neighbours - if not in self visited  where k is (a, curr) or (curr, a), `k[k[0] == curr]` will return a
-        neighbour_data = { k:v for k, v in edgList.items() if (node in k) and (k[k[0] == node] not in self.visited)}
+        neighbour_data = {}
+
+        size = self.graph.N
+        for ConNode in range(size):
+            if ConNode not in self.visited:
+                edgBase = (node, ConNode)
+                edg = edgBase
+                if ConNode < node:
+                    edg = (ConNode, node)
+
+                if edg in edgList:
+                    neighbour_data[edgBase] = edgList[edg]
 
         # sorted on value
         neighbours = dict(sorted(neighbour_data.items(), key=lambda item: item[1]))
@@ -292,10 +333,12 @@ class DeltaCoarseningEngine:
 
         for vehicleIdx in range(numVehicles):
             coarseVehicleRoute = solution[vehicleIdx]
+
             inflatedRoute = self.inflateSingleRoute(coarseVehicleRoute, coarseningMap, weightedAdj)
             inflatedSolution.append(inflatedRoute)
 
         return inflatedSolution
+
 
 
 
@@ -313,6 +356,7 @@ class DeltaCoarseningEngine:
 
 
 
+
     def inflateSingleRoute(self, route, coarsenMap, weightedAdj):
         """
             Expands Single Vehicle Route
@@ -321,13 +365,10 @@ class DeltaCoarseningEngine:
 
         # reducing solution from [(a,b), (b,c), (c,d)] to [a,b,c,d]
         route = self.routeEdgeToNode(route)
-
-        # new inflatedRoute
         inflatedRoute = [coarsenMap[route[0]][0]]
 
         # Should assert first and last node belong in depot - requires knowledge of depots in coarse nodes
         # assert route[0] in self.depot and route[0]
-
         for routeStopIdx in range(1, len(route[1:]) + 1):
   
             #skipping first and last points (they are depots)

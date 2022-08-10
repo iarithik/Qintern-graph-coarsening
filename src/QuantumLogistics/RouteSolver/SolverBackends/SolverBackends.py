@@ -66,8 +66,12 @@ class PulpSolver(solver):
 
             solution = []
             solution_name = []
+
             for v in prob.variables():
-                solution.append(v.varValue)
+                value = round(v.varValue, 4)
+                if v.isInteger():
+                    value = round(v.varValue)
+                solution.append(value)
                 solution_name.append(v.name)
             
             #map the pulp solution format to matchs with CPLEX
@@ -83,9 +87,43 @@ class PulpSolver(solver):
             return
 
 
+    def verifyConstraints(self, prob):
+
+        soln_dict = {i.name: round(i.varValue,1) for i in prob.variables()}
+
+        for c in prob.constraints.values():
+            c_dict = c.toDict()
+            # print(c_dict)
+            satisfied = False
+            
+            LHS = sum([soln_dict[i['name']]*i['value'] for i in c_dict['coefficients']])
+            LHS = LHS + c_dict['constant']
+            
+            if c_dict['sense'] == 0:
+                satisfied = (LHS == 0)
+        
+            if c_dict['sense'] == -1:
+                satisfied = (LHS <= 0)
+            
+            if c_dict['sense'] == 1:
+                satisfied = (LHS >= 0)
+
+            if not satisfied:
+                #print('LHS: ', LHS)
+                print(c)
+                print('not satisfied') 
+
+        return
+
+
+
 class GurobiSolver(PulpSolver):
     def defineSolver(self, gap_rel, time_lim):
         return pl.GUROBI_CMD(msg=1, gapRel=gap_rel, timeLimit=time_lim)
+
+class GurobiSolver2(PulpSolver):
+    def defineSolver(self, gap_rel, time_lim):
+        return pl.GUROBI(msg=1, gapRel=gap_rel, timeLimit=time_lim)
 
 
 class CBCSolver(PulpSolver):

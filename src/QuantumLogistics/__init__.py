@@ -13,4 +13,4 @@ from QuantumLogistics.RouteSolver.Encoders.StandardEncoder import Encoder
 
 # Solvers
 from QuantumLogistics.RouteSolver.Encoders.ILPEncoder import ILPPulpEncoder
-from QuantumLogistics.RouteSolver.SolverBackends.SolverBackends import GurobiSolver, CBCSolver
+from QuantumLogistics.RouteSolver.SolverBackends.SolverBackends import GurobiSolver, GurobiSolver2, CBCSolver

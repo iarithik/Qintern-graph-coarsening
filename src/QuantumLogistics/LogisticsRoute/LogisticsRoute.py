@@ -14,12 +14,12 @@ class Route(object):
             'graph': graph
         }
 
-        self.graph = graph                          # PyGSP graph object
-        self.n = LogisticsGraph.n                   # Number of nodes
+        self.graph = graph                                  # PyGSP graph object
+        self.n = LogisticsGraph.n                            # Number of nodes
         self.depot = config["depot"]                # ID of the depot (default 0)
         self.cursor = config["depot"]               # Current location of the cursor vehicle
         self.vehicles = config["vehicles"]          # Number of vehicle
-        self.truckCapacity = config["truckCapacity"]     # ratio of nodes per vehicle that can achieved
+        self.truckCapacity = config["truckCapacity"]     # value of maximum truck capacity
         self.coords = getattr(graph, 'coords', [])  # Coordinates of the nodes
         self.routes = None              # Calculated Routes
         self.solution = None
@@ -40,7 +40,7 @@ class Route(object):
         pass
     
     
-    def visualiseSolution(self, routeSolution, colormap = "hsv"):
+    def visualiseSolution(self, routeSolution, colormap = "hsv", saveImgFilepath = False):
         routes = routeSolution
         [xc, yc] = self.graph.coords.T
         plt.figure()
@@ -54,11 +54,9 @@ class Route(object):
             i += 1
         
         plt.plot(xc[0], yc[0], "r*", ms=20)
-
         plt.grid()
 
         vehicle_cmap = self.get_cmap(len(routes) + 1, name=colormap)
-        print('colors : ', len(routes))
         for vehicle in range(len(routes)):
             tour = routes[vehicle]
             color = vehicle_cmap(vehicle)
@@ -75,7 +73,14 @@ class Route(object):
                     color = color
                 )
 
-        plt.show()
+        print(saveImgFilepath)
+        if not saveImgFilepath:
+            print(saveImgFilepath)
+            #print("THIS IS SHOWING THE THING HERE")
+            plt.show()
+        else:
+            print("SAVING FIGURE")
+            plt.savefig(saveImgFilepath)
         return
 
 
@@ -160,8 +165,8 @@ class Route(object):
         # Coarsening graphs - probably need to do metrics here to compare the original to final
         while newGraphSize > coarseningRate * initialGraphSize:
             # Coarsening
-            coarsenedGraph, fineToCoarseMapping = self.coarseningEngine.coarsen(graphToCoarsen, self.depot, fineNodeCapacities)
-            
+            coarsenedGraph, fineToCoarseMapping = self.coarseningEngine.coarsen(graphToCoarsen, self.depot, fineNodeCapacities, self.truckCapacity)
+
             # updating node capacities
             coarseNodeCapacities = self.propogateNodeCapacities(fineNodeCapacities, fineToCoarseMapping)
 
@@ -196,13 +201,20 @@ class Route(object):
         """
             Updating coarse node capacities
         """
-
+        # print("FINE NODE CAPACITIES: ")
+        # print(fineNodeCapacities)
         rows,cols = fineToCoarseMapping.nonzero()
         coarseNodeQty = max(cols)
         coarseNodeCapacities = np.zeros(coarseNodeQty)
 
         for row,col in zip(rows,cols):
             coarseNodeCapacities[row] += fineNodeCapacities[col]
+
+
+        # print("COARSE NODE CAPACITIES: ")
+        # print(coarseNodeCapacities)
+
+        # print("\n")
 
         return coarseNodeCapacities
 
