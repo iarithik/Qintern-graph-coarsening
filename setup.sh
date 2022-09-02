@@ -6,11 +6,8 @@ python3 -m venv .venv
 # Activate Virtual environment
 source ./.venv/bin/activate
 
-# Change directory to coarsening package
-cd ./src/
-
 # Install coarsening package
-pip3 install -e .
+pip3 install -e ./src/
 
 # Run tests
-python3 -m pytest ./test/
+python3 -m pytest ./src/test/

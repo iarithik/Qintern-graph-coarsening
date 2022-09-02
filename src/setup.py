@@ -28,7 +28,9 @@ setup(
         "qiskit_optimization",
         "dwave-ocean-sdk",
         "pulp",
-        "pytest"
+        "pytest",
+        "pandas",
+        "graph_coarsening @ git+https://github.com/loukasa/graph-coarsening",
     ],
     classifiers=[
         # Project Maturity

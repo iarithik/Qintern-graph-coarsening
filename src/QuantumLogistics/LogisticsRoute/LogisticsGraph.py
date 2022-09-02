@@ -5,7 +5,9 @@ import numpy as np
 
 from typing import Tuple, List
 
-class logisticsGraph:
+from ..Graph import Graph
+
+class logisticsGraph(Graph):
     """Generate the coordinates of 'n' instances (nodes)"""
     
     def __init__(self, nodeCapacityDefintion, seed = 1543, graph_type = "fully_connected"):
@@ -21,12 +23,9 @@ class logisticsGraph:
         self.graph_type = graph_type
         self.set_seed()
 
-
     def set_seed(self, seed=None):
         np.random.seed(seed if seed else self.seed )
     
-
-
     def generate_graph(self) -> graphs.Graph:
         xc, yc, instance = self.generateGraphPoints()
 
@@ -39,8 +38,6 @@ class logisticsGraph:
         self.graph = graph
 
         return graph
-
-
 
     def generateGraphPoints(self) -> Tuple[List, List, np.array]:
         xy = np.random.rand(2, self.n) +  + np.ones((2, self.n)) #What is the ones offset for??
@@ -72,7 +69,6 @@ class logisticsGraph:
 
         return xc, yc, W
 
-
     def plotGraph(self):
         """
             Visualises the LogisticsGraph's graph object
@@ -83,13 +79,8 @@ class logisticsGraph:
 
         return
 
-
     def loadGraphPointsFromFile(self):
-
         raise NotImplementedError
 
-
     def loadGraphFromFile(self):
-
-
         raise NotImplementedError

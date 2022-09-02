@@ -1,6 +1,5 @@
 
 from abc import ABC, abstractclassmethod
-from typing import tuple
 from matplotlib.colors import ListedColormap
 from pygsp import graphs
 
