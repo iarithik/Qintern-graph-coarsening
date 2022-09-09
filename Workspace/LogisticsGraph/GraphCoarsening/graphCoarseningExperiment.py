@@ -127,8 +127,8 @@ if __name__ == "__main__":
     plotOutputs = False
 
     # The classical baseline solver: Known to give optimal results through an ILP formulation
-    solver = StandardRouteSolver(ILPPulpEncoder(), GurobiSolver())
-    #solver = StandardRouteSolver(ILPPulpEncoder(), CBCSolver())
+    # solver = StandardRouteSolver(ILPPulpEncoder(), GurobiSolver())
+    solver = StandardRouteSolver(ILPPulpEncoder(), CBCSolver())
     #solver = StandardRouteSolver(ILPPulpEncoder(), GurobiSolver2())
 
     solverConfig = {"testVar": 1,

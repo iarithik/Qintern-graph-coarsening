@@ -1,6 +1,6 @@
 import numpy as np
 from time import time
-import csv
+import csv, os
 
 
 from QuantumLogistics import logisticsGraph, Route, StandardRouteSolver, ILPPulpEncoder, GurobiSolver, CBCSolver, DeltaCoarseningEngine, CompositeRouteSolver, GurobiSolver2
@@ -58,7 +58,7 @@ def solveRoutingProblem(graphFile:str, testSolver: CompositeRouteSolver, testSol
     SolutionList = []
 
 
-    #Define the network object
+    # Define the network object
     network = vrpRepGraph(graphFile)
     network.generate_graph()
 
@@ -66,7 +66,7 @@ def solveRoutingProblem(graphFile:str, testSolver: CompositeRouteSolver, testSol
     if verbose == True:
         network.plotGraph()
 
-    #Create the route object
+    # Create the route object
     route = Route(network, routeConfig, coarseningEngine = coarseningEngine)
 
     # indicates coarsening is required
@@ -82,10 +82,7 @@ def solveRoutingProblem(graphFile:str, testSolver: CompositeRouteSolver, testSol
     rootFilePath = str(numberOfNodes) + '_' + str(numberTrucks) + '_' + str(coarsenConfig['coarsenRate']) + '_' + str(runNumber) + "saveImage.png"
     fineFilePath = "fine_" + rootFilePath
     coarseFilePath = rootFilePath
-    #route.visualiseSolution(solvedFineRoute, saveImgFilepath=fineFilePath)
     route.visualiseSolution(solvedCoarseRoute, saveImgFilepath=coarseFilePath)
-    #print(solvedCoarseRoute)
-    #route.visualiseSolution(solvedCoarseRoute)
 
     #Output
     solutionList = [numberOfNodes, numberTrucks, coarsenConfig['coarsenRate'], runNumber, coarseCost, coarseSolveTime, coarseCost, coarseSolveTime]
@@ -125,8 +122,8 @@ if __name__ == "__main__":
         writer = csv.writer(csv_file, delimiter=',')
         writer.writerow([0])
 
-    inputVect = {   "numberOfNodes" : graphSize,
-                    "numberTrucks": numberTrucks,
+    inputVect = {   "numberOfNodes" : graphSize, 
+                    "numberTrucks": numberTrucks, 
                     "coarseningRate": coarseningRate, 
                     "verbose" : plotOutputs, 
                 }
@@ -135,9 +132,13 @@ if __name__ == "__main__":
     print("Testing with coarsening Rate ", coarseningRate)
     print("Testing with size: ", graphSize)
 
-    graphFile = "/workspace/21_solving-vehicle-routing-problem-and-its-variants-using-quantum-computing_b/dataset/CMT01.xml"
+    graphDir = "/workspace/21_solving-vehicle-routing-problem-and-its-variants-using-quantum-computing_b/dataset/"
 
-    solutionList = solveRoutingProblem(graphFile, solver, solverConfig, **inputVect)
-    print(solutionList)
+    for root, dirs, files in os.walk(graphDir):
+        for f in files:
+            file = os.path.join(root, f)
+            print(f'Running graph file {file}...')
+            solutionList = solveRoutingProblem(file, solver, solverConfig, **inputVect)
+            print(solutionList)
     
     # Need to start from Run 12, 50 nodes, 0.5 coarsening

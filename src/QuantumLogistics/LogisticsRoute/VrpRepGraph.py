@@ -3,6 +3,8 @@ import pygsp
 import networkx as nx
 import numpy as np
 
+import math
+
 from typing import Tuple, List
 
 from ..Graph import Graph
@@ -39,9 +41,13 @@ class vrpRepGraph(Graph):
 
         self.graph = graph
 
+        # Capacities
         self.nodeCapacities = [ node.get_dem() for node in self.nodelist.get_nodes() ]
 
         assert len(self.nodeCapacities) == len(coords) == self.n
+
+        # Number of vehicles
+        num_vehicles = math.ceil(sum(self.nodeCapacities) / self.nodelist._capacity)
 
         return graph
 
