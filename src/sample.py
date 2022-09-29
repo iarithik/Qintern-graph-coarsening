@@ -26,8 +26,8 @@ def solveRoutingProblem(graphFile:str, testSolver: CompositeRouteSolver, testSol
     # This defines the operating details for the route (i.e number of trucks, truck capacity (how many nodes can a truck go to))
     #   For even distribution of trucks set routeConfig['truckCapacity'] == -1
     routeConfig = {     'vehicles' : numberTrucks,
-                        'depot' : 0, 
-                        'truckCapacity': -1}  # Set to -1 for auto (will evenly distribute trucks)
+                        'depot' : 76, 
+                        'truckCapacity': 140}  # Set to -1 for auto (will evenly distribute trucks)
 
     ## Modifying truck capacity if set to auto
     if routeConfig['truckCapacity'] == -1:        
@@ -114,7 +114,7 @@ if __name__ == "__main__":
                     "gapRel" : 0.005,
                     "timeLimit" : 600}
 
-    graphSize = 20
+    graphSize = 76
     coarseningRate = 0.3
 
     # Resetting csv File
@@ -136,9 +136,10 @@ if __name__ == "__main__":
 
     for root, dirs, files in os.walk(graphDir):
         for f in files:
-            file = os.path.join(root, f)
-            print(f'Running graph file {file}...')
-            solutionList = solveRoutingProblem(file, solver, solverConfig, **inputVect)
-            print(solutionList)
+            if "02.xml" in f: # Only runs the 02.xml file
+                file = os.path.join(root, f)
+                print(f'Running graph file {file}...')
+                solutionList = solveRoutingProblem(file, solver, solverConfig, **inputVect)
+                print(solutionList)
     
     # Need to start from Run 12, 50 nodes, 0.5 coarsening

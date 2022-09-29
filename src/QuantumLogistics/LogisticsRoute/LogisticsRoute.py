@@ -203,12 +203,12 @@ class Route(object):
         """
         # print("FINE NODE CAPACITIES: ")
         # print(fineNodeCapacities)
-        rows,cols = fineToCoarseMapping.nonzero()
-        coarseNodeQty = max(cols) # Why is this max(col) and not len(col)? ]---.
-        coarseNodeCapacities = np.zeros(coarseNodeQty)      #                  |  TODO: I didn't understand this part...
-                                                            #                  |  max is 49 i.e.  [0...49] 
-        for row,col in zip(rows,cols):                      #                  |  but total length is 50.
-            coarseNodeCapacities[row] += fineNodeCapacities[col]   #       < --'  $ python3 src/sample.py
+        rows,cols = fineToCoarseMapping.nonzero() # When working, it's 13 x 14 i.e. 14 nodes coarsened to 13
+        coarseNodeQty = max(cols) # Thus, this is max of the 14 elements [0...13] ie 13 ]---.
+        coarseNodeCapacities = np.zeros(coarseNodeQty)      #                               |  TODO: In case of un-successful
+                                                            #                               |  coarsening, this fineToCoarseMapping
+        for row,col in zip(rows,cols):                      #                               |  is a square matrix, raising problems
+            coarseNodeCapacities[row] += fineNodeCapacities[col]   #                    < --'  $ python3 src/sample.py
 
 
         # print("COARSE NODE CAPACITIES: ")

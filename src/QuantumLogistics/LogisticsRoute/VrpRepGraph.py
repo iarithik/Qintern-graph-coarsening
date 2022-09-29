@@ -21,7 +21,7 @@ class vrpRepGraph(Graph):
         """
         self.graphFile = file
         self.nodelist = loaddataset(self.graphFile)
-        self.n = len(self.nodelist.get_nodes())
+        self.n = len(self.nodelist.get_nodes()) + 1
         self.seed = seed
         self.set_seed()
 
@@ -30,19 +30,28 @@ class vrpRepGraph(Graph):
 
     def generate_graph(self) -> graphs.Graph:
         
-        instance = np.ones((self.n, self.n))
+        instance = np.zeros((self.n, self.n))
+        coords = np.array([node.get_pos() for node in self.nodelist.get_all_nodes()])
+
+        # Create the Weight Adjacency
+        for x, points_A in enumerate(coords):
+            for y, points_B in enumerate(coords):
+                instance[x, y] = np.linalg.norm(points_A - points_B)
+        
+        # Normalize the weights
+        instance = instance / np.max(instance)
+
         np.fill_diagonal(instance, 0)
 
         # Define a Graph
         graph = graphs.Graph(instance)
 
-        coords = np.array([node.get_pos() for node in self.nodelist.get_nodes()])
         graph.set_coordinates(coords)
 
         self.graph = graph
 
         # Capacities
-        self.nodeCapacities = [ node.get_dem() for node in self.nodelist.get_nodes() ]
+        self.nodeCapacities = [ node.get_dem() for node in self.nodelist.get_all_nodes() ]
 
         assert len(self.nodeCapacities) == len(coords) == self.n
 

@@ -64,6 +64,9 @@ class NodeList(list):
 
   def get_nodes(self):
     return [node for node in self if node.get_type()==1]
+  
+  def get_all_nodes(self):
+    return sorted([node for node in (self + [self.get_depot()])], key=lambda n: n._id)
 
   def get_nodes_id_list(self):
     return [node.get_id() for node in self if node.get_type()==1]
