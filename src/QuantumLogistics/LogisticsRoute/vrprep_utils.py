@@ -10,6 +10,12 @@ def loaddataset(filename='dataset/CMT01.xml'):
   capacity = float(root.findall('.//capacity')[0].text)   # All vehicles have the same capacity
   nodes = NodeList(capacity)
 
+  nodes.vehicle = {
+    "departure_node": int(root.find('fleet').getchildren()[0].find('departure_node').text),
+    "arrival_node": int(root.find('fleet').getchildren()[0].find('arrival_node').text),
+    "capacity": float(root.find('fleet').getchildren()[0].find('capacity').text),
+  }
+
   for node, request in zip(root.iter('node'), root.iter('request')):
     id_ = int(node.get('id'))
     type_ = int(node.get('type'))
@@ -19,6 +25,7 @@ def loaddataset(filename='dataset/CMT01.xml'):
     demand = float(request.find('quantity').text)
     node_ = Node(id_, type_, position, demand)
     nodes.append(node_)
+  
 
   return nodes
 
@@ -50,6 +57,7 @@ class NodeList(list):
     self._capacity = capacity
     self._depot = None
     self._is_first_get_depot = True
+    self.vehicle = Node
 
   def get_depot(self):
     if self._is_first_get_depot:

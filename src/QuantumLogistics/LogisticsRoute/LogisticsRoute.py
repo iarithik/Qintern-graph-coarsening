@@ -4,7 +4,7 @@ import numpy as np
 import scipy as sp
 
 class Route(object):
-    def __init__(self, LogisticsGraph, config, coarseningEngine = None):
+    def __init__(self, LogisticsGraph, coarseningEngine = None, **config):
         
         graph = LogisticsGraph.graph
         self.nodeCapacities = LogisticsGraph.nodeCapacities

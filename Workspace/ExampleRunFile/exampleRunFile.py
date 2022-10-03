@@ -44,7 +44,7 @@ def solveRoutingProblem(testSolver: CompositeRouteSolver, testSolverConfig: dict
     coarsenConfig = {'coarsenRate' : 0.5,
                      'radiusCoefficient': 0.2}
 
-    coarseningEngine = DeltaCoarseningEngine(coarsenConfig)
+    coarseningEngine = DeltaCoarseningEngine(**coarsenConfig)
 
     #+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+
     ############################################################################################################################
@@ -86,8 +86,8 @@ def solveRoutingProblem(testSolver: CompositeRouteSolver, testSolverConfig: dict
                 LogisticsNetwork.plotGraph()
 
             #Create the route object
-            route = Route(LogisticsNetwork, routeConfig, coarseningEngine = coarseningEngine)
-            route.coarsen = False # indicates coarsening is required
+            route = Route(LogisticsNetwork, coarseningEngine = coarseningEngine, **routeConfig)
+            route.coarsen = True # indicates coarsening is required
 
             # Solving
             timeInitial = time()

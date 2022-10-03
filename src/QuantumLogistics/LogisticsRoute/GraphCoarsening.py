@@ -52,7 +52,7 @@ class BlankCoarseningEngine:
 
 class DeltaCoarseningEngine:
 
-    def __init__(self, config):
+    def __init__(self, coarsenRate = 0.1, radiusCoefficient = 0.2):
         """
             General coarsening Engine Class used to coarsen Logistics Graphs in VRP problem
 
@@ -64,8 +64,8 @@ class DeltaCoarseningEngine:
         """
 
         # self.edl.values
-        self.rate = config["coarsenRate"]
-        self.radiusCoefficient = config["radiusCoefficient"]
+        self.rate = coarsenRate
+        self.radiusCoefficient = radiusCoefficient
 
         return
 
