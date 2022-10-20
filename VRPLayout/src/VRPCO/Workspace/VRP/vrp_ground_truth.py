@@ -93,23 +93,6 @@ def create_data_model():
     return data
 
 
-def create_data_model2():
-    """Stores the data for the problem."""
-    data = {}
-    data['distance_matrix'] = [
-       [  0, 548, 776, 696, 582, 274, 502],
-       [548,   0, 684, 308, 194, 502, 730],
-       [776, 684,   0, 992, 878, 502, 274],
-       [696, 308, 992,   0, 114, 650, 878],
-       [582, 194, 878, 114,   0, 536, 764],
-       [274, 502, 502, 650, 536,   0, 228],
-       [502, 730, 274, 878, 764, 228,   0]
-    ]
-    data['num_vehicles'] = 3
-    data['depot'] = 0
-    return data
-
-
 def print_solution(data, manager, routing, solution):
     """Prints solution on console."""
     print(f'Objective: {solution.ObjectiveValue()}')
@@ -129,7 +112,6 @@ def print_solution(data, manager, routing, solution):
         print(plan_output)
         max_route_distance = max(route_distance, max_route_distance)
     print('Maximum of the route distances: {}m'.format(max_route_distance))
-
 
 
 def main(data = None):
