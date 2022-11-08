@@ -12,13 +12,14 @@ if __name__ == "__main__":
 
     for root, dirs, files in os.walk(graphDir):
         for f in files:
-            if "02.xml" in f: # Only runs the 02.xml file
+            if "11.xml" in f: # Only runs the 02.xml file
 
                 file = os.path.join(root, f)
                 print(f'[i] Loading graph file {f}...')
 
                 # Define the network object
                 network = vrpRepGraph(file)
+
                 network.generate_graph()
 
 
@@ -27,6 +28,7 @@ if __name__ == "__main__":
                 numberOfNodes = network.n
                 numberTrucks = int(network.nodelist.vehicle['capacity']) # depot's capacity, i.e. no. of trucks
                 truckCapacity = max(network.nodeCapacities)
+                depot = network.nodelist.vehicle['arrival_node']
 
                 verbose = False
 
@@ -43,7 +45,7 @@ if __name__ == "__main__":
 
                 print(f'[i] Setting coarsening engine for {f}...')
                 coarseningRate = 0.3
-                radiusCoefficient = 0.2
+                radiusCoefficient = 0.5
 
                 coarseningEngine = DeltaCoarseningEngine(
                     coarsenRate = coarseningRate,           # 0.3
@@ -54,8 +56,8 @@ if __name__ == "__main__":
                 # Create the route object 
                 route = Route(network, 
                     vehicles = 1, # numberTrucks,    # 18
-                    depot = network.nodelist.vehicle['arrival_node'],    # 76
-                    truckCapacity = 140, # truckCapacity,     # 37
+                    depot = depot, # network.nodelist.vehicle['arrival_node'],    # 76
+                    truckCapacity = truckCapacity,     # 37
                     coarseningEngine = coarseningEngine 
                 )
 
