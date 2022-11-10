@@ -34,8 +34,8 @@ if __name__ == "__main__":
 
                 print(f'[i] Setting route solver for {f}...')
                 # The classical baseline solver: Known to give optimal results through an ILP formulation
-                # solver = StandardRouteSolver(ILPPulpEncoder(), GurobiSolver())
-                solver = StandardRouteSolver(ILPPulpEncoder(), CBCSolver())
+                solver = StandardRouteSolver(ILPPulpEncoder(), GurobiSolver())
+                # solver = StandardRouteSolver(ILPPulpEncoder(), CBCSolver())
                 # solver = StandardRouteSolver(ILPPulpEncoder(), GurobiSolver2())
 
                 # Plotting the network

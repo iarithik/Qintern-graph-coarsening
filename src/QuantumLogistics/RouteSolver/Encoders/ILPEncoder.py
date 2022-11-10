@@ -85,6 +85,7 @@ class ILPPulpEncoder(Encoder):
         # Sub-tour elimination constraints through capacities:
         for ii in range(0, n):
             for jj in range(0, n):
+                # NOTE : Sub-Tour Elimination
                 if (ii != jj) and (ii * jj > 0): # if i or j not 0
                     col = [ii + (jj * n), n ** 2 + ii - 1, n ** 2 + jj - 1]
                     coef = [Q, 1, -1]
