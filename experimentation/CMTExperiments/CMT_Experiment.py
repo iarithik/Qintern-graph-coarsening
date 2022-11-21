@@ -1,56 +1,64 @@
 import numpy as np
 from time import time
-import csv
+import csv, os
 
+from QuantumLogistics import logisticsGraph, Route, StandardRouteSolver, ILPPulpEncoder, GurobiSolver, CBCSolver \
+    , DeltaCoarseningEngine, CompositeRouteSolver, GurobiSolver2
+from QuantumLogistics.LogisticsRoute.VrpRepGraph import vrpRepGraph
 
-from QuantumLogistics import logisticsGraph, Route, StandardRouteSolver, ILPPulpEncoder, GurobiSolver, CBCSolver, DeltaCoarseningEngine, CompositeRouteSolver, GurobiSolver2
-    
 #################################################
 #################################################
 # GO TO THE BOTTOM OF THE FILE TO PUT YOUR CODE IN
 #################################################
 #################################################
 
-def solveRoutingProblem(testSolver: CompositeRouteSolver, testSolverConfig: dict, numberTrucks = 2, numberOfNodes = 15, coarseningRate = 0.5, sampleSize = 20, verbose = False):
+dataDir = r"C:\CRUD\TurbasuGraphCoarsening\dataset"
+csvSaveDir = "csvOutputFile.csv"
+
+def solveRoutingProblem(testSolver: CompositeRouteSolver, testSolverConfig: dict, 
+                        cmtFile = 'CMT11.xml', numberTrucks = 2, coarseningRate = 0.5, 
+                        sampleSize = 1, CMTBKS = 1000, verbose = False):
     """
         Example run file to test Quantum Optimisation Algorithm on the Vehicle Routing Problem
     """
     ############################################################################################################################
     # 1. Graph Definition
     ############################################################################################################################
-    # This defines the primary features of the graph to be studied
-    #   This is in the CVRP problem - with 'node demand'. Leave at 0.1 for general work
-    graphType = "fully_connected"
-    singleNodeCapacity = 0.1
-    nodeCapacityDefinition = numberOfNodes * [singleNodeCapacity]  # A list of nodes 
+    root = dataDir
+    file =  os.path.join(root, cmtFile)
+    print(f'[i] Loading graph file {file}...')
+    LogisticsNetwork = vrpRepGraph(file)
+    LogisticsNetwork.generate_graph()
+
+    print(f'[i] Setting graph configurations for {file}...')    
+    numberOfNodes = LogisticsNetwork.n
+    print(f'[i] Number of nodes {numberOfNodes} ...')    
+    
+    truckCapacity = max(LogisticsNetwork.nodeCapacities)
+    print(f'[i] Truck Capacity {truckCapacity} ...')    
+    
+    depot = LogisticsNetwork.nodelist.vehicle['arrival_node']
+    print(f'[i] Depot Node {depot} ...')    
 
     #+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+
     ############################################################################################################################
     # 2. Route Object Definiton
     ############################################################################################################################
     # This defines the operating details for the route (i.e number of trucks, truck capacity (how many nodes can a truck go to))
-    #   For even distribution of trucks set routeConfig['truckCapacity'] == -1
     routeConfig = {     'vehicles' : numberTrucks,
-                        'depot' : 0, 
-                        'truckCapacity': -1}  # Set to -1 for auto (will evenly distribute trucks)
-
-    ## Modifying truck capacity if set to auto
-    if routeConfig['truckCapacity'] == -1:        
-        Q = singleNodeCapacity * np.ceil((numberOfNodes+1) / routeConfig['vehicles'])
-        routeConfig['truckCapacity'] = Q
+                        'depot' : depot, 
+                        'truckCapacity': truckCapacity}  # Set to -1 for auto (will evenly distribute trucks)
 
     # Define Coarsening Object/methods 
     # This is if coarsening is set to true (i.e the optimiser coarsens the graph before solving)
     coarsenConfig = {'coarsenRate' : coarseningRate,
                      'radiusCoefficient': 0.2}
-
     coarseningEngine = DeltaCoarseningEngine(**coarsenConfig)
 
     #+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+
     ############################################################################################################################
     # 3. Solver Definiton 
     ############################################################################################################################
-
     # Define solver - using ILP encoder with CBC Solver for example
     solver = testSolver
     solverConfig = testSolverConfig
@@ -59,58 +67,43 @@ def solveRoutingProblem(testSolver: CompositeRouteSolver, testSolverConfig: dict
     ############################################################################################################################
     # 4. Solving
     ############################################################################################################################
-
     # statistical analysis
     numberofGraphSamples = sampleSize
 
-    #generate a list of seeds used in run (for future reference)
-    #np.savetxt("seedFiles.txt",np.random.randint(50000, size = numberofGraphSamples))
-
-    #Loading Seeds
-    seeds = np.loadtxt("seedFiles.txt").astype(np.int32)
-
-    #numberofGraphSamples = len(seeds)
-
     SolutionList = []
-
     for runNumber in range(numberofGraphSamples):
         print("FOR RUN NUMBER :", runNumber)
-
-        #Define the network object
-        LogisticsNetwork = logisticsGraph(nodeCapacityDefinition, seed = seeds[runNumber], graph_type = graphType)
+        LogisticsNetwork = vrpRepGraph(file)
         LogisticsNetwork.generate_graph()
 
         # Plotting the network
         if verbose == True:
             LogisticsNetwork.plotGraph()
 
-        #Create the route object
+        # Create the route object
         route = Route(LogisticsNetwork, coarseningEngine = coarseningEngine, **routeConfig)
 
-        # indicates coarsening is required
+        # Indicates coarsening is required
         route.coarsen = False 
         if coarseningRate < 1:
             route.coarsen = True
 
         # Solving Network
-        solvedCoarseRoute, coarseSolveTime, coarseCost = solver.solve(route, config = solverConfig)
-        coarseMIPGap = 0
-
-        # Saving images
-        rootFilePath = str(numberOfNodes) + '_' + str(numberTrucks) + '_' + str(coarsenConfig['coarsenRate']) + '_' + str(runNumber) + "saveImage.png"
-        fineFilePath = "fine_" + rootFilePath
-        coarseFilePath = rootFilePath
-        #route.visualiseSolution(solvedFineRoute, saveImgFilepath=fineFilePath)
-        route.visualiseSolution(solvedCoarseRoute, saveImgFilepath=coarseFilePath)
-        #print(solvedCoarseRoute)
-        #route.visualiseSolution(solvedCoarseRoute)
-
+        try:
+            solvedRoute, solveTime, cost = solver.solve(route, config = solverConfig)
+            # Saving images
+            savefilePath = cmtFile + '_' + str(coarsenConfig['coarsenRate']) + '_' + str(runNumber) + "saveImage.png"
+            route.visualiseSolution(solvedRoute, saveImgFilepath=savefilePath)
+        except:
+            print("No Solution Found in time limit")
+            cost = 0
+            solveTime = 'Not Solved'
+            
         #Output
-        solutionList = [numberOfNodes, numberTrucks, coarsenConfig['coarsenRate'], runNumber, coarseCost, coarseSolveTime, coarseCost, coarseSolveTime]
+        solutionList = [cmtFile, numberTrucks, coarsenConfig['coarsenRate'], runNumber, cost, cost/CMTBKS, solveTime]
 
         # Resetting csv File
-        print("to csv")
-        with open("csvOutputFile.csv", "a", newline = '') as csv_file:
+        with open(csvSaveDir, "a", newline = '') as csv_file:
             writer = csv.writer(csv_file, delimiter=',')
             writer.writerow(solutionList)
 
@@ -119,49 +112,60 @@ def solveRoutingProblem(testSolver: CompositeRouteSolver, testSolverConfig: dict
 
 
 if __name__ == "__main__":
-
+    # General CMT Details: {cmt numer : (number Trucks, optimal value)} 
+    # http://vrp.atd-lab.inf.puc-rio.br/index.php/en/
+    CMTDetails = {'01' : (5,    524.61) ,
+                  '02' : (10,   835.26) ,
+                  '03' : (8,    826.14) ,
+                  '04' : (12,   1028.42),
+                  '05' : (17,   1291.29),
+                  '06' : (6,    555.43) ,
+                  '07' : (11,   909.68) ,
+                  '08' : (9,    865.94) ,
+                  '09' : (14,   1162.55),
+                  '10' : (18,   1395.85),
+                  '11' : (7,    1042.12),
+                  '12' : (10,   819.56) ,
+                  '13' : (11,   1541.14),
+                  '14' : (11,   866.37) }
+    
     # General Problem Details:
-    numberOfNodes = 15
-    numberTrucks = 1
-
     plotOutputs = False
 
     # The classical baseline solver: Known to give optimal results through an ILP formulation
-    # solver = StandardRouteSolver(ILPPulpEncoder(), GurobiSolver())
-    solver = StandardRouteSolver(ILPPulpEncoder(), CBCSolver())
-    #solver = StandardRouteSolver(ILPPulpEncoder(), GurobiSolver2())
-
+    solver = StandardRouteSolver(ILPPulpEncoder(), GurobiSolver())
     solverConfig = {"testVar": 1,
                     "gapRel" : 0.005,
-                    "timeLimit" : 600}
+                    "timeLimit" : 3000}
 
-    sampleSize = 20
+    sampleSize = 1
 
-    graphSizes = [80, 120, 160] #Tested 20, 30, 50, 60
-    coarseningRates = [1,0.9,0.7,0.5,0.3] #[1,0.9,0.7,0.5,0.3]
+    # Exploring coarsening
+    coarseningRates = [1,0.9,0.7,0.5,0.3] 
 
     # Resetting csv File
-    with open("csvOutputFile.csv", "w", newline = '') as csv_file:
+    with open(csvSaveDir, "w", newline = '') as csv_file:
         writer = csv.writer(csv_file, delimiter=',')
-        writer.writerow([0])
+        writer.writerow(["cmtFileName", "Number of Trucks", "Coarsening Rate", "Run Number", "Solution Cost", "Relative Cost", "Solve Time"])
 
-    for size in graphSizes:
+    for cmtNum, cmtData in CMTDetails.items():
+        truckNumber = cmtData[0]
+        cmtfile = "CMT" + cmtNum + '.xml'
+        
         for coarseningRate in coarseningRates:
-            inputVect = {   "numberOfNodes" : size,
-                            "numberTrucks": numberTrucks,
+            print("Testing with coarsening Rate ", coarseningRate)
+
+            inputVect = {   "cmtFile" : cmtfile,
+                            "numberTrucks": truckNumber,
+                            "CMTBKS" : cmtData[1],
                             "coarseningRate": coarseningRate, 
                             "sampleSize": sampleSize, 
                             "verbose" : plotOutputs, }
 
-            # solve Problem: (30 optimisation runs)
-            print("Testing with coarsening Rate ", coarseningRate)
-            print("Testing with size: ", size)
-
             solutionList = solveRoutingProblem(solver, solverConfig, **inputVect)
             print(solutionList)
-    
-        # Need to start from Run 12, 50 nodes, 0.5 coarsening
+
         
         
         
-    
+        

@@ -11,10 +11,18 @@ def loaddataset(filename='dataset/CMT01.xml'):
   nodes = NodeList(capacity)
 
   nodes.vehicle = {
-    "departure_node": int(root.find('fleet').getchildren()[0].find('departure_node').text),
-    "arrival_node": int(root.find('fleet').getchildren()[0].find('arrival_node').text),
-    "capacity": float(root.find('fleet').getchildren()[0].find('capacity').text),
+    "departure_node": int(list(root.find('fleet'))[0].find('departure_node').text),
+    "arrival_node": int(list(root.find('fleet'))[0].find('arrival_node').text),
+    "capacity": float(list(root.find('fleet'))[0].find('capacity').text),
   }
+
+
+  # nodes.vehicle = {
+  #   "departure_node": int(root.find('fleet').getchildren()[0].find('departure_node').text),
+  #   "arrival_node": int(root.find('fleet').getchildren()[0].find('arrival_node').text),
+  #   "capacity": float(root.find('fleet').getchildren()[0].find('capacity').text),
+  # }
+
 
   for index, node in enumerate(root.iter('vehicle_profile')):
     assert node.find('arrival_node').text == node.find('departure_node').text

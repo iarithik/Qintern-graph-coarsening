@@ -19,7 +19,6 @@ class CompositeRouteSolver(ABC):
         """
             DO NOT OVERWRITE METHOD
         """
-
         self.config = config
         startTime = time()
 
@@ -27,18 +26,18 @@ class CompositeRouteSolver(ABC):
         if route.coarsen:
             print("Coarsening Graph now")
             route.coarsenGraph()
-        
-        # pygsp.plotting.plot_graph(route.graph)
-        # input("Press here")
 
         problemSol = self.solveAlgorithm(route)
         routeSol = self.extractSolution(problemSol)
 
+        #route.visualiseSolution(routeSol)
+        
         if route.coarsen:
-            #route.visualiseSolution(routeSol)
             routeSol = route.inflateGraph(routeSol)
             route.graph = route.originalGraph
 
+        #route.visualiseSolution(routeSol)
+    
         # Standard solver details
         solveTime = time() - startTime
         costValue = route.calculateCost(routeSol)

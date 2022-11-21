@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 from QuantumLogistics.LogisticsRoute.GraphCoarsening import BlankCoarseningEngine
 import numpy as np
 import scipy as sp
+import pygsp
+import copy
 
 class Route(object):
     def __init__(self, LogisticsGraph, coarseningEngine = None, **config):
@@ -14,14 +16,14 @@ class Route(object):
             'graph': graph
         }
 
-        self.graph = graph                                  # PyGSP graph object
-        self.n = LogisticsGraph.n                            # Number of nodes
-        self.depot = config["depot"]                # ID of the depot (default 0)
-        self.cursor = config["depot"]               # Current location of the cursor vehicle
-        self.vehicles = config["vehicles"]          # Number of vehicle
-        self.truckCapacity = config["truckCapacity"]     # value of maximum truck capacity
-        self.coords = getattr(graph, 'coords', [])  # Coordinates of the nodes
-        self.routes = None              # Calculated Routes
+        self.graph = graph                                      # PyGSP graph object
+        self.n = LogisticsGraph.n                               # Number of nodes
+        self.depot = config["depot"]                            # ID of the depot (default 0)
+        self.cursor = config["depot"]                           # Current location of the cursor vehicle
+        self.vehicles = config["vehicles"]                      # Number of vehicle
+        self.truckCapacity = config["truckCapacity"]            # value of maximum truck capacity
+        self.coords = getattr(graph, 'coords', [])              # Coordinates of the nodes
+        self.routes = None                                      # Calculated Routes
         self.solution = None
 
         # Coarsening Parameters:
@@ -41,48 +43,53 @@ class Route(object):
     
     
     def visualiseSolution(self, routeSolution, colormap = "hsv", saveImgFilepath = False):
-        routes = routeSolution
-        [xc, yc] = self.graph.coords.T
-        plt.figure()
-        plt.scatter(xc, yc, s=200)
-        # for i in range(len(xc)):
-        #     plt.annotate(i, (xc[i] + 0.15, yc[i]), size=16, color="r")
+        try:
+            routes = routeSolution
+            [xc, yc] = self.graph.coords.T
+            plt.figure()
+            plt.scatter(xc, yc, s=200)
+            # for i in range(len(xc)):
+            #     plt.annotate(i, (xc[i] + 0.15, yc[i]), size=16, color="r")
 
-        i = 0
-        for x, y in zip(xc, yc):
-            plt.annotate(i, (x + 0.075, y), size=16, color="r")
-            i += 1
-        
-        plt.plot(xc[0], yc[0], "r*", ms=20)
-        plt.grid()
+            i = 0
+            for x, y in zip(xc, yc):
+                plt.annotate(i, (x + 0.075, y), size=16, color="r")
+                i += 1
+            
+            plt.plot(xc[0], yc[0], "r*", ms=20)
+            plt.grid()
 
-        vehicle_cmap = self.get_cmap(len(routes) + 1, name=colormap)
-        for vehicle in range(len(routes)):
-            tour = routes[vehicle]
-            color = vehicle_cmap(vehicle)
-            for hop in tour:
-                _from, _to = hop
+            vehicle_cmap = self.get_cmap(len(routes) + 1, name=colormap)
+            for vehicle in range(len(routes)):
+                tour = routes[vehicle]
+                color = vehicle_cmap(vehicle)
+                for hop in tour:
+                    _from, _to = hop
 
-                plt.arrow(
-                    xc[_from],
-                    yc[_from],
-                    xc[_to] - xc[_from],
-                    yc[_to] - yc[_from],
-                    length_includes_head=True,
-                    head_width=0.02,
-                    color = color
-                )
+                    plt.arrow(
+                        xc[_from],
+                        yc[_from],
+                        xc[_to] - xc[_from],
+                        yc[_to] - yc[_from],
+                        length_includes_head=True,
+                        head_width=0.02,
+                        color = color
+                    )
 
-        print(saveImgFilepath)
-        if not saveImgFilepath:
-            print(saveImgFilepath)
-            #print("THIS IS SHOWING THE THING HERE")
-            plt.show()
-        else:
-            print("SAVING FIGURE")
-            plt.savefig(saveImgFilepath)
+            if not saveImgFilepath:
+                #print("THIS IS SHOWING THE THING HERE")
+                plt.show()
+            else:
+                print("SAVING FIGURE")
+                plt.savefig(saveImgFilepath)
+        except:
+            print("error when visualising route")
         return
 
+    def visualiseGraph(self):
+        pygsp.plotting.plot_graph(self.graph)
+        input("Press any button to continue")
+        return
 
     def evalutateKPIS(self, solution):
         cost = self.calculateCost(solution)
@@ -110,18 +117,16 @@ class Route(object):
 
 
 
-
     def calculateCost(self, solution):
         """
             Needs to be checked fundamentally
         """
         _graph = self.pygsp_graph()
         edl = self.graphEdges2Dict(_graph)
-
         cost = 0
         for route in solution:
             for (_from, _to) in route:
-                cost += edl.get((_from, _to), edl.get((_to, _from)) )
+                cost += edl.get((_from, _to), edl.get((_to, _from), 0) )
 
         return cost
 
@@ -155,7 +160,7 @@ class Route(object):
         fineNodeCapacities = self.nodeCapacities
 
         # History lists
-        self.originalGraph = self.graph   #pygsp object
+        self.originalGraph = copy.deepcopy(self.graph)   #pygsp object
         self.coarsenGraphHistory = [self.originalGraph]
         self.coarsenMappingHistory = [sp.sparse.eye(self.originalGraph.N, format="csc")]
 
@@ -188,7 +193,7 @@ class Route(object):
                 plt.scatter(self.originalGraph.coords[:,0], self.originalGraph.coords[:,1])
                 plt.scatter(coarsenedGraph.coords[:,0], coarsenedGraph.coords[:,1])
                 plt.show()
-
+                
         self.graph = graphToCoarsen
         self.nodeCapacities = fineNodeCapacities
         
@@ -201,21 +206,12 @@ class Route(object):
         """
             Updating coarse node capacities
         """
-        # print("FINE NODE CAPACITIES: ")
-        # print(fineNodeCapacities)
         rows,cols = fineToCoarseMapping.nonzero() # When working, it's 13 x 14 i.e. 14 nodes coarsened to 13
         coarseNodeQty = max(cols) # Thus, this is max of the 14 elements [0...13] ie 13 ]---.
         coarseNodeCapacities = np.zeros(coarseNodeQty)      #                               |  TODO: In case of un-successful
                                                             #                               |  coarsening, this fineToCoarseMapping
         for row,col in zip(rows,cols):                      #                               |  is a square matrix, raising problems
             coarseNodeCapacities[row] += fineNodeCapacities[col]   #                    < --'  $ python3 src/sample.py
-
-
-        # print("COARSE NODE CAPACITIES: ")
-        # print(coarseNodeCapacities)
-
-        # print("\n")
-
         return coarseNodeCapacities
 
 

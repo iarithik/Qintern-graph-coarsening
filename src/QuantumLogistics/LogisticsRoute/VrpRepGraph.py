@@ -29,7 +29,6 @@ class vrpRepGraph(Graph):
         np.random.seed(seed if seed else self.seed )
 
     def generate_graph(self) -> graphs.Graph:
-        
         instance = np.zeros((self.n, self.n))
         coords = np.array([node.get_pos() for node in self.nodelist.get_all_nodes()])
 
@@ -38,14 +37,10 @@ class vrpRepGraph(Graph):
             for y, points_B in enumerate(coords):
                 instance[x, y] = np.linalg.norm(points_A - points_B)
         
-        # Normalize the weights
-        instance = instance / np.max(instance)
-
         np.fill_diagonal(instance, 0)
 
         # Define a Graph
         graph = graphs.Graph(instance)
-
         graph.set_coordinates(coords)
 
         self.graph = graph
