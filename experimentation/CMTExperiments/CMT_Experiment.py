@@ -12,7 +12,7 @@ from QuantumLogistics.LogisticsRoute.VrpRepGraph import vrpRepGraph
 #################################################
 #################################################
 
-dataDir = r"C:\CRUD\TurbasuGraphCoarsening\dataset"
+dataDir = r"C:\Users\joshua.keene\Documents\Coarsening\21_solving-vehicle-routing-problem-and-its-variants-using-quantum-computing_b\dataset"
 csvSaveDir = "csvOutputFile.csv"
 
 def solveRoutingProblem(testSolver: CompositeRouteSolver, testSolverConfig: dict, 
@@ -89,15 +89,15 @@ def solveRoutingProblem(testSolver: CompositeRouteSolver, testSolverConfig: dict
             route.coarsen = True
 
         # Solving Network
-        try:
-            solvedRoute, solveTime, cost = solver.solve(route, config = solverConfig)
-            # Saving images
-            savefilePath = cmtFile + '_' + str(coarsenConfig['coarsenRate']) + '_' + str(runNumber) + "saveImage.png"
-            route.visualiseSolution(solvedRoute, saveImgFilepath=savefilePath)
-        except:
-            print("No Solution Found in time limit")
-            cost = 0
-            solveTime = 'Not Solved'
+        #try: Sometimes the solver won't find a solution and causes an error. 
+        solvedRoute, solveTime, cost = solver.solve(route, config = solverConfig)
+        # Saving images
+        savefilePath = cmtFile + '_' + str(coarsenConfig['coarsenRate']) + '_' + str(runNumber) + "saveImage.png"
+        route.visualiseSolution(solvedRoute, saveImgFilepath=savefilePath)
+        #except:
+            # print("No Solution Found in time limit")
+            # cost = 0
+            # solveTime = 'Not Solved'
             
         #Output
         solutionList = [cmtFile, numberTrucks, coarsenConfig['coarsenRate'], runNumber, cost, cost/CMTBKS, solveTime]
@@ -119,28 +119,35 @@ if __name__ == "__main__":
                   '03' : (8,    826.14) ,
                   '04' : (12,   1028.42),
                   '05' : (17,   1291.29),
-                  '06' : (6,    555.43) ,
-                  '07' : (11,   909.68) ,
-                  '08' : (9,    865.94) ,
-                  '09' : (14,   1162.55),
-                  '10' : (18,   1395.85),
                   '11' : (7,    1042.12),
-                  '12' : (10,   819.56) ,
-                  '13' : (11,   1541.14),
-                  '14' : (11,   866.37) }
+                  '12' : (10,   819.56) }
+                  # These instances are made with time windows and cannot be solved
+                  # with the current solver method
+                  #'06' : (6,    555.43) ,
+                  #'07' : (11,   909.68) ,
+                  #'08' : (9,    865.94) ,
+                  #'09' : (14,   1162.55),
+                  #'10' : (18,   1395.85),
+                  #'13' : (11,   1541.14),
+                  #'14' : (11,   866.37) }
     
     # General Problem Details:
     plotOutputs = False
 
+    # SOLVER AND ENCODER DEFINITION
+    encoder = ILPPulpEncoder()
+
     # The classical baseline solver: Known to give optimal results through an ILP formulation
-    solver = StandardRouteSolver(ILPPulpEncoder(), GurobiSolver())
+    solverAlg = CBCSolver()
+    #solver = GurobiSolver()
+
+    solver = StandardRouteSolver(encoder, solverAlg)
     solverConfig = {"testVar": 1,
                     "gapRel" : 0.005,
-                    "timeLimit" : 3000}
-
+                    "timeLimit" : 300}
+    
+    #General Experiment Settings
     sampleSize = 1
-
-    # Exploring coarsening
     coarseningRates = [1,0.9,0.7,0.5,0.3] 
 
     # Resetting csv File
@@ -166,6 +173,7 @@ if __name__ == "__main__":
             print(solutionList)
 
         
-        
+
+
         
         

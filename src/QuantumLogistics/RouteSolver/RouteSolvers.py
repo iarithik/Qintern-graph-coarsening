@@ -2,7 +2,7 @@ from abc import ABC, abstractclassmethod
 from time import time
 import pygsp
 
-from QuantumLogistics import Route # solver #, Encoder, solver
+from QuantumLogistics import Route 
 
 class CompositeRouteSolver(ABC):
     """
@@ -27,6 +27,8 @@ class CompositeRouteSolver(ABC):
             print("Coarsening Graph now")
             route.coarsenGraph()
 
+        #TODO: Sometimes the solver may not find a feasible solution in the timelimit
+        # Need to develop an exception handling method for this
         problemSol = self.solveAlgorithm(route)
         routeSol = self.extractSolution(problemSol)
 
