@@ -7,10 +7,11 @@ from QuantumLogistics.LogisticsRoute.GraphCoarsening import BlankCoarseningEngin
 
 #Interface classes
 from QuantumLogistics.RouteSolver.RouteSolvers import StandardRouteSolver, CompositeRouteSolver
-from QuantumLogistics.RouteSolver.SolverBackends.SolverBackends import solver
+from QuantumLogistics.RouteSolver.SolverBackends.SolverBackends import Solver
 from QuantumLogistics.RouteSolver.Encoders.StandardEncoder import Encoder
 
 
 # Solvers
 from QuantumLogistics.RouteSolver.Encoders.ILPEncoder import ILPPulpEncoder
-from QuantumLogistics.RouteSolver.SolverBackends.SolverBackends import GurobiSolver, GurobiSolver2, CBCSolver
+from QuantumLogistics.RouteSolver.Encoders.VRPExplorationsEncoder import VRPExplorationsEncoder
+from QuantumLogistics.RouteSolver.SolverBackends.SolverBackends import GurobiSolver, GurobiSolver2, CBCSolver, VRPExplorationsSolver

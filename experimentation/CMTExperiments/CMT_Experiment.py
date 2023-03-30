@@ -12,7 +12,8 @@ from QuantumLogistics.LogisticsRoute.VrpRepGraph import vrpRepGraph
 #################################################
 #################################################
 
-dataDir = r"C:\Users\joshua.keene\Documents\Coarsening\21_solving-vehicle-routing-problem-and-its-variants-using-quantum-computing_b\dataset"
+dataDir = os.path.join(os.getcwd(), "../../dataset")
+
 csvSaveDir = "csvOutputFile.csv"
 
 def solveRoutingProblem(testSolver: CompositeRouteSolver, testSolverConfig: dict, 
@@ -70,14 +71,14 @@ def solveRoutingProblem(testSolver: CompositeRouteSolver, testSolverConfig: dict
     # statistical analysis
     numberofGraphSamples = sampleSize
 
-    SolutionList = []
+    allSolutionsList = []
     for runNumber in range(numberofGraphSamples):
         print("FOR RUN NUMBER :", runNumber)
         LogisticsNetwork = vrpRepGraph(file)
         LogisticsNetwork.generate_graph()
 
         # Plotting the network
-        if verbose == True:
+        if verbose:
             LogisticsNetwork.plotGraph()
 
         # Create the route object
@@ -102,12 +103,13 @@ def solveRoutingProblem(testSolver: CompositeRouteSolver, testSolverConfig: dict
         #Output
         solutionList = [cmtFile, numberTrucks, coarsenConfig['coarsenRate'], runNumber, cost, cost/CMTBKS, solveTime]
 
-        # Resetting csv File
-        with open(csvSaveDir, "a", newline = '') as csv_file:
-            writer = csv.writer(csv_file, delimiter=',')
+        with open(csvSaveDir, "a", newline="") as csv_file:
+            writer = csv.writer(csv_file, delimiter=",")
             writer.writerow(solutionList)
 
-    return SolutionList
+        allSolutionsList.append(solutionList)
+
+    return allSolutionsList
 
 
 
@@ -171,9 +173,3 @@ if __name__ == "__main__":
 
             solutionList = solveRoutingProblem(solver, solverConfig, **inputVect)
             print(solutionList)
-
-        
-
-
-        
-        
